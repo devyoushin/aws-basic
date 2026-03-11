@@ -41,6 +41,22 @@
 - 참고: [Direct Connect 가상 인터페이스(VIF) 유형 및 상태 관리](https://repost.aws/ko/knowledge-center/direct-connect-down-virtual-interface)
 - 참고: [Direct Connect VIF가 Down되었을 때 해결 방법](https://docs.aws.amazon.com/ko_kr/directconnect/latest/UserGuide/WorkingWithVirtualInterfaces.html)
 - 참고: [Direct Connect 가용성 및 BGP 모니터링 모범 사례](https://aws.amazon.com/ko/blogs/networking-and-content-delivery/monitor-bgp-status-on-aws-direct-connect-vifs-and-track-prefix-count-advertised-over-transit-vif/)
+ 
+## 5. 관리 및 확인 권한 범위 (Visibility & Ownership)
+장애 발생 시 신속한 상황 판단을 위해 사용자(고객)와 CSP 간의 확인 가능한 지표 범위를 구분하여 관리합니다.
+
+### 5.1 사용자 확인 가능 영역 (Customer Ownership)
+고객사 보유 장비 및 CSP사 콘솔을 통해 직접 확인할 수 있는 로우 레벨 지표입니다.
+
+- On-Premise 라우터 로그: BGP Neighbor 상태 변화 이력 및 Uptime 유지 여부 (장애 시 최우선 확인 대상).
+- Netflow/SNMP 트래픽: 해당 시간대 실제 데이터 전송량(Throughput)이 유지되었는지 여부.
+- Interface 상태: 고객사 측 라우터 포트의 에러 카운트 및 광신호(Optical Power) 수치.
+
+### 5.2 CSP 내부 확인 영역 (CSP Ownership - 요청 필요)
+고객이 직접 볼 수 없으며, CSP사 서포트 티켓을 통해 확인받아야 하는 심층 지표입니다.
+- Control Plane 상태: CSP사 모니터링 시스템(Console/API)과 실제 라우터 간의 통신 지연 여부.
+- DX 엔드포인트 세부 로그: CSP사 측 라우터에서 기록된 밀리초(ms) 단위의 Interface Flap 기록.
+- BGP 상세 상태: 콘솔상 'Unknown' 표시와 무관하게 실제 라우터 메모리상에 유지된 BGP Established 상태값.
 
 ## TIP
 - BFD(Bidirectional Forwarding Detection) 설정 권장: BGP는 장애 감지 속도가 기본적으로 느립니다(보통 180초). BFD를 활성화하면 초 단위로 장애를 감지하여 즉시 Failover를 유도할 수 있습니다.
