@@ -38,6 +38,9 @@
 - CloudWatch Metrics: https://docs.aws.amazon.com/ko_kr/directconnect/latest/UserGuide/monitoring-cloudwatch.html
 - 참고: https://aws.amazon.com/ko/blogs/networking-and-content-delivery/monitor-bgp-status-on-aws-direct-connect-vifs-and-track-prefix-count-advertised-over-transit-vif/
 - 참고: https://repost.aws/ko/knowledge-center/direct-connect-connectivity-issues
+- 참고: [Direct Connect 가상 인터페이스(VIF) 유형 및 상태 관리](https://repost.aws/ko/knowledge-center/direct-connect-down-virtual-interface)
+- 참고: [Direct Connect VIF가 Down되었을 때 해결 방법](https://docs.aws.amazon.com/ko_kr/directconnect/latest/UserGuide/WorkingWithVirtualInterfaces.html)
+- 참고: [Direct Connect 가용성 및 BGP 모니터링 모범 사례](https://aws.amazon.com/ko/blogs/networking-and-content-delivery/monitor-bgp-status-on-aws-direct-connect-vifs-and-track-prefix-count-advertised-over-transit-vif/)
 
 ## TIP
 - BFD(Bidirectional Forwarding Detection) 설정 권장: BGP는 장애 감지 속도가 기본적으로 느립니다(보통 180초). BFD를 활성화하면 초 단위로 장애를 감지하여 즉시 Failover를 유도할 수 있습니다.
