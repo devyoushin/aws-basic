@@ -165,6 +165,256 @@ spec:
       storage: 5Gi    # EFS는 실제 사용량 기준 과금, 여기서는 요청값만 명시
 ```
 
+---
+
+#### EFS 다중 Access Point — 팀/서비스별 경로 격리
+
+EFS는 하나의 파일시스템 위에 여러 Access Point를 만들어 각 애플리케이션/팀에
+**독립된 디렉터리와 UID/GID**를 부여할 수 있다. 멀티테넌트 환경에서
+같은 EFS를 공유하면서도 서로의 데이터에 접근하지 못하게 격리하는 핵심 패턴이다.
+
+```
+EFS File System (fs-xxxxxxxxxxxxxxxxx)
+│
+├── / (루트)
+│   ├── /team-a/data         ← Access Point A (uid=1000, gid=1000)
+│   ├── /team-b/data         ← Access Point B (uid=2000, gid=2000)
+│   ├── /app-uploads         ← Access Point C (uid=1500, gid=1500)
+│   └── /shared-configs      ← Access Point D (읽기 전용 공유)
+│
+각 Access Point는 자신의 루트 경로만 보임 (chroot 효과)
+→ team-a는 /team-b/data 접근 불가
+```
+
+**Terraform — EFS + 다중 Access Point 생성**
+
+```hcl
+# EFS 파일시스템
+resource "aws_efs_file_system" "shared" {
+  creation_token   = "eks-shared-efs"
+  performance_mode = "generalPurpose"
+  throughput_mode  = "elastic"          # 워크로드에 따라 자동 조정
+  encrypted        = true
+  kms_key_id       = aws_kms_key.efs.arn
+
+  lifecycle_policy {
+    transition_to_ia = "AFTER_30_DAYS"  # 30일 미접근 → IA 티어로 이동
+  }
+
+  tags = {
+    Name = "eks-shared-efs"
+  }
+}
+
+# EFS 마운트 타겟 (각 AZ의 서브넷마다 생성)
+resource "aws_efs_mount_target" "az" {
+  for_each = toset(var.private_subnet_ids)
+
+  file_system_id  = aws_efs_file_system.shared.id
+  subnet_id       = each.value
+  security_groups = [aws_security_group.efs.id]
+}
+
+# Security Group — EKS 노드에서 NFS(2049) 허용
+resource "aws_security_group" "efs" {
+  name   = "efs-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    from_port       = 2049
+    to_port         = 2049
+    protocol        = "tcp"
+    security_groups = [var.eks_node_sg_id]
+  }
+}
+
+# ── Access Point 정의 ──────────────────────────────────────────
+
+locals {
+  efs_access_points = {
+    team-a = {
+      path = "/team-a/data"
+      uid  = 1000
+      gid  = 1000
+    }
+    team-b = {
+      path = "/team-b/data"
+      uid  = 2000
+      gid  = 2000
+    }
+    app-uploads = {
+      path = "/app/uploads"
+      uid  = 1500
+      gid  = 1500
+    }
+    shared-configs = {
+      path = "/shared/configs"
+      uid  = 0       # root 소유 (읽기 전용 목적)
+      gid  = 0
+    }
+  }
+}
+
+resource "aws_efs_access_point" "apps" {
+  for_each = local.efs_access_points
+
+  file_system_id = aws_efs_file_system.shared.id
+
+  # 접속 시 강제 적용되는 POSIX UID/GID
+  posix_user {
+    uid = each.value.uid
+    gid = each.value.gid
+  }
+
+  # Access Point의 루트 경로 (없으면 자동 생성)
+  root_directory {
+    path = each.value.path
+    creation_info {
+      owner_uid   = each.value.uid
+      owner_gid   = each.value.gid
+      permissions = "750"
+    }
+  }
+
+  tags = {
+    Name = "eks-ap-${each.key}"
+    Team = each.key
+  }
+}
+
+# Access Point ID 출력 (StorageClass에서 사용)
+output "efs_access_point_ids" {
+  value = {
+    for k, v in aws_efs_access_point.apps : k => v.id
+  }
+}
+```
+
+**Kubernetes — Access Point별 StorageClass + PV 정적 프로비저닝**
+
+동적 프로비저닝(`efs-ap`)은 PVC마다 새 Access Point를 생성한다.
+**이미 Terraform으로 만든 Access Point를 재사용**하려면 정적 PV를 사용한다.
+
+```yaml
+# team-a 전용 StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-team-a
+provisioner: efs.csi.aws.com
+# 정적 프로비저닝은 StorageClass에 accessPointId 미지정
+# → PV에 직접 명시
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+---
+# team-a 전용 PV (Terraform에서 생성한 Access Point ID 참조)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-pv-team-a
+spec:
+  capacity:
+    storage: 50Gi             # EFS는 실제 용량 제한 없음, 명시적 선언만
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-team-a
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-xxxxxxxxxxxxxxxxx::fsap-team-a-id
+    #             ↑ EFS File System ID  ↑ Access Point ID
+  # team-a namespace의 PVC만 바인딩 허용
+  claimRef:
+    namespace: team-a
+    name: efs-pvc-team-a
+---
+# team-a namespace의 PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-pvc-team-a
+  namespace: team-a
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-team-a
+  resources:
+    requests:
+      storage: 50Gi
+  volumeName: efs-pv-team-a   # 위 PV에 직접 바인딩
+```
+
+**Kubernetes — 동적 프로비저닝 (Access Point 자동 생성)**
+
+팀별로 PVC를 만들 때마다 Access Point를 자동 생성하려면 동적 프로비저닝을 사용한다.
+
+```yaml
+# 팀별 StorageClass (gid 범위로 팀 구분)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-team-a-dynamic
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-xxxxxxxxxxxxxxxxx
+  directoryPerms: "750"
+  gidRangeStart: "1000"    # team-a GID 범위: 1000~1999
+  gidRangeEnd: "1999"
+  # basePath: "/team-a"    # 모든 AP를 /team-a 하위에 생성 (EFS CSI v1.4.0+)
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-team-b-dynamic
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-xxxxxxxxxxxxxxxxx
+  directoryPerms: "750"
+  gidRangeStart: "2000"    # team-b GID 범위: 2000~2999
+  gidRangeEnd: "2999"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+```
+
+**IRSA — EFS CSI Driver에 필요한 권한**
+
+```hcl
+module "efs_csi_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name             = "${var.cluster_name}-efs-csi-driver"
+  attach_efs_csi_policy = true   # elasticfilesystem:* 권한 자동 추가
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:efs-csi-controller-sa"]
+    }
+  }
+}
+
+resource "aws_eks_addon" "efs_csi_driver" {
+  cluster_name             = module.eks.cluster_name
+  addon_name               = "aws-efs-csi-driver"
+  addon_version            = "v1.7.6-eksbuild.1"
+  service_account_role_arn = module.efs_csi_irsa.iam_role_arn
+}
+```
+
+**다중 Access Point 패턴 비교**
+
+| 패턴 | 방법 | 적합한 경우 |
+|------|------|------------|
+| 정적 프로비저닝 | Terraform으로 AP 생성 → PV에 volumeHandle 명시 | AP 수가 고정, Terraform 관리 선호 |
+| 동적 프로비저닝 | PVC 생성 시 AP 자동 생성 | PVC 수가 많고 자동화가 필요한 경우 |
+| basePath 사용 | 팀별 하위 경로 지정 (EFS CSI v1.4+) | 팀별 디렉터리 구조를 명확히 분리할 때 |
+
 **VolumeSnapshot — 스냅샷 자동화**
 
 ```yaml

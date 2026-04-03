@@ -13,6 +13,7 @@ AWS 운영 경험을 바탕으로 정리한 실무 지식 베이스입니다.
 - [SHA-256 활용](aws-security-sha256-usage.md) — Lambda hash, S3 체크섬, Signature V4
 - [IAM Permission Boundary](iam-permission-boundary.md) — 권한 에스컬레이션 방지, SCP 조합, 개발팀 위임 패턴
 - [CloudTrail 보안 감사 자동화](cloudtrail-security-audit.md) — Metric Filter 알람, Athena 쿼리, EventBridge 연동
+- [WAF 규칙 & Rate Limiting](waf-rate-limiting.md) — Managed Rule Group, Rate-based Rule, False Positive 대응
 
 ### Direct Connect (DX)
 - [DX 로케이션 & 물리 연결](dx-location.md) — Colocation, LOA-CFA, Cross-Connect
@@ -23,6 +24,7 @@ AWS 운영 경험을 바탕으로 정리한 실무 지식 베이스입니다.
 
 ### EC2
 - [Amazon Linux 2 vs AL2023](ec2-al2-al2023.md) — dnf, SELinux, SSH RSA 차단 이슈
+- [AL2 → AL2023 마이그레이션 (IP 유지)](ec2-al2023-migration.md) — ENI Swap, EIP 재연결, NLB Target 교체
 - [ASG 내 Stop/Start](ec2-autoscaling-stop-start.md) — Standby 상태, 프로세스 중단
 - [Dedicated Instance](ec2-dedicated-instance.md) — 단일 테넌트, Dedicated Host 차이, 비용
 - [GPU 텔레메트리 수집](ec2-gpu-telemetry-capturing.md) — NVIDIA DCGM, Xid 오류, CloudWatch
@@ -40,11 +42,11 @@ AWS 운영 경험을 바탕으로 정리한 실무 지식 베이스입니다.
 ### EKS
 - [ImagePullPolicy](eks-imagepullpolicy.md) — Always/IfNotPresent/Never, ECR 인증, ImagePullBackOff
 - [Karpenter vs Cluster Autoscaler](eks-karpenter-vs-cluster-autoscaler.md) — 아키텍처 비교, NodePool, 마이그레이션
-- [IRSA (IAM Roles for Service Accounts)](eks-irsa.md) — OIDC Provider, Trust Policy, AssumeRoleWithWebIdentity 트러블슈팅
+- [IRSA (IAM Roles for Service Accounts)](eks-irsa.md) — OIDC 토큰 교환 플로우 심화, STS 검증 단계, Trust Policy, Cross-account
 - [VPC CNI 네트워킹](eks-networking-vpc-cni.md) — ENI/IP 한도, Prefix Delegation, IP 고갈 해결
 - [클러스터 업그레이드 전략](eks-upgrade-strategy.md) — 버전 정책, 업그레이드 순서, deprecated API 탐지
 - [CoreDNS 튜닝](eks-coredns-tuning.md) — ndots:5 문제, NodeLocal DNSCache, Corefile 커스터마이징
-- [PersistentVolume (EBS/EFS CSI)](eks-persistent-volume.md) — StorageClass gp3, StatefulSet, VolumeSnapshot
+- [PersistentVolume (EBS/EFS CSI)](eks-persistent-volume.md) — StorageClass gp3, StatefulSet, VolumeSnapshot, EFS 다중 Access Point 격리
 - [HPA / VPA / KEDA](eks-hpa-vpa.md) — 스케일링 공식, VPA 모드, KEDA SQS 연동
 - [Node Drain & Cordon](eks-node-drain-cordon.md) — drain 흐름, PDB, preStop 훅, 강제 drain 위험성
 - [Secrets 관리 (ESO)](eks-secrets-management.md) — External Secrets Operator, ClusterSecretStore, IRSA 연동
@@ -56,6 +58,17 @@ AWS 운영 경험을 바탕으로 정리한 실무 지식 베이스입니다.
 ### CloudWatch / 모니터링
 - [커스텀 지표 수집](cloudwatch-custom-metric.md) — Agent config, put-metric-data, GPU 지표 스크립트
 - [Fluent Bit on EKS](cloudwatch-eks-fluentbit.md) — DaemonSet, IRSA, 멀티라인 파싱
+- [Container Insights](cloudwatch-container-insights.md) — EKS/ECS 지표, 성능 패널, 비용 최적화
+- [Composite Alarm](cloudwatch-alarm-composite.md) — AND/OR 조합, Alarm Storm 방지, 계층형 알람
+- [Logs Insights](cloudwatch-log-insights.md) — 쿼리 문법, 집계/파싱, 대시보드 연동
+- [Metric Math](cloudwatch-metric-math.md) — 수식, 에러율/포화도 계산, ANOMALY_DETECTION
+- [CloudWatch Agent 설정](cloudwatch-agent-config.md) — 메모리/디스크/procstat, EC2/EKS DaemonSet 배포
+- [Synthetics Canary](cloudwatch-synthetics.md) — API/UI 외부 모니터링, Puppeteer 스크립트
+- [Embedded Metrics Format (EMF)](cloudwatch-embedded-metrics.md) — 구조화 지표, Lambda/컨테이너 로그 기반 지표
+- [크로스 계정 모니터링 (OAM)](cloudwatch-cross-account.md) — Sink/Link, Organizations 통합
+- [대시보드 설계 Best Practice](cloudwatch-dashboard-best-practice.md) — USE/RED 메서드, Variable, 위젯 패턴
+- [RUM (Real User Monitoring)](cloudwatch-rum.md) — 프론트엔드 성능, Core Web Vitals, 커스텀 이벤트
+- [Evidently (Feature Flag / A/B)](cloudwatch-evidently.md) — Launch/Experiment, Kill Switch
 
 ### 네트워크 / 로드밸런서
 - [NLB 포트 포워딩](nlb-ec2-port-forwarding.md) — Terraform, 헬스체크, SG 트러블슈팅
@@ -74,12 +87,12 @@ AWS 운영 경험을 바탕으로 정리한 실무 지식 베이스입니다.
 - [Aurora 클러스터 운영](rds-aurora-cluster.md) — Writer/Reader 엔드포인트, 페일오버, Auto Scaling, Clone
 - [ElastiCache Redis 클러스터](elasticache-redis-cluster.md) — 클러스터 모드, maxmemory-policy, 페일오버, Eviction
 
+### 배포 (Deploy)
+- [CodeDeploy](aws-codedeploy.md) — In-Place/Blue-Green 배포, AppSpec Lifecycle Hook, Terraform, 롤백
+
 ### 비용 최적화 / 거버넌스
 - [AWS 비용 최적화](aws-cost-optimization.md) — Savings Plans vs RI vs Spot, 미사용 리소스 탐지, Budget 알람
 - [AWS Organizations 멀티 계정](aws-organizations-multi-account.md) — OU 구조, SCP 가드레일, SSO, 멀티 계정 전략
-
-### 보안 / 방어
-- [WAF 규칙 & Rate Limiting](waf-rate-limiting.md) — Managed Rule Group, Rate-based Rule, False Positive 대응
 
 ---
 
