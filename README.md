@@ -81,6 +81,7 @@ AWS 운영 경험을 바탕으로 정리한 실무 지식 베이스입니다.
 ### 스토리지
 - [S3 스토리지 클래스 & Lifecycle](s3-lifecycle-intelligent-tiering.md) — 클래스 비교, Intelligent-Tiering, 비용 최적화
 - [ECR 이미지 관리 & Lifecycle](ecr-lifecycle-policy.md) — 이미지 태그 전략, Lifecycle Policy, 취약점 스캔
+- [EFS Access Point](efs-access-point.md) — POSIX UID/GID 격리, 정적/동적 프로비저닝, EKS CSI 연동, Lambda 마운트, 크로스 계정 공유
 
 ### 데이터베이스 / 캐시
 - [RDS 파라미터 그룹 튜닝](rds-parameter-group.md) — MySQL/PostgreSQL 파라미터, 슬로우 쿼리, 연결 관리
