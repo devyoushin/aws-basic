@@ -1,0 +1,3 @@
+# boto3는 Lambda 런타임에 기본 포함
+# DynamoDB 저장 기능 사용 시 boto3만으로 충분 (추가 패키지 불필요)
+# CSV, JSON, gzip 모두 Python 표준 라이브러리 사용
