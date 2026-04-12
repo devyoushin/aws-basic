@@ -143,6 +143,23 @@ def describe_routes(rtb_id: str) -> list[dict]:
 
 # ─── 게이트웨이 ───────────────────────────────────────────────────────────────
 
+def list_igw() -> list[dict]:
+    """인터넷 게이트웨이 목록 (연결된 VPC 포함)"""
+    resp = ec2.describe_internet_gateways()
+    result = []
+
+    for igw in resp["InternetGateways"]:
+        attachment = igw["Attachments"][0] if igw.get("Attachments") else {}
+        result.append({
+            "igw_id": igw["InternetGatewayId"],
+            "name": get_tag_name(igw.get("Tags", [])),
+            "vpc_id": attachment.get("VpcId", "-"),
+            "state": attachment.get("State", "detached"),
+        })
+
+    return result
+
+
 def list_nat_gateways() -> list[dict]:
     """NAT 게이트웨이 목록 및 상태"""
     paginator = ec2.get_paginator("describe_nat_gateways")
@@ -190,7 +207,46 @@ def list_vpc_endpoints(vpc_id: str = None) -> list[dict]:
     return endpoints
 
 
+# ─── VPC 피어링 ───────────────────────────────────────────────────────────────
+
+def list_peering_connections() -> list[dict]:
+    """VPC 피어링 연결 목록"""
+    paginator = ec2.get_paginator("describe_vpc_peering_connections")
+    conns = []
+
+    for page in paginator.paginate():
+        for pc in page["VpcPeeringConnections"]:
+            conns.append({
+                "peering_id": pc["VpcPeeringConnectionId"],
+                "requester_vpc": pc["RequesterVpcInfo"]["VpcId"],
+                "requester_cidr": pc["RequesterVpcInfo"].get("CidrBlock", "-"),
+                "accepter_vpc": pc["AccepterVpcInfo"]["VpcId"],
+                "accepter_cidr": pc["AccepterVpcInfo"].get("CidrBlock", "-"),
+                "status": pc["Status"]["Code"],
+            })
+
+    return conns
+
+
 # ─── 보안 그룹 ────────────────────────────────────────────────────────────────
+
+def list_sg_in_vpc(vpc_id: str) -> list[dict]:
+    """특정 VPC의 보안 그룹 전체 목록"""
+    paginator = ec2.get_paginator("describe_security_groups")
+    sgs = []
+
+    for page in paginator.paginate(Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]):
+        for sg in page["SecurityGroups"]:
+            sgs.append({
+                "sg_id": sg["GroupId"],
+                "name": sg["GroupName"],
+                "description": sg.get("Description", "-"),
+                "inbound_rules": len(sg.get("IpPermissions", [])),
+                "outbound_rules": len(sg.get("IpPermissionsEgress", [])),
+            })
+
+    return sorted(sgs, key=lambda x: x["name"])
+
 
 def find_unused_security_groups() -> list[dict]:
     """ENI에 연결되지 않은 미사용 보안 그룹 탐지"""
@@ -288,8 +344,10 @@ def print_table(data: list[dict]) -> None:
 
 
 COMMANDS = {
-    "vpcs":      (list_vpcs,           "전체 VPC 목록"),
-    "nat":       (list_nat_gateways,   "NAT 게이트웨이 목록"),
+    "vpcs":      (list_vpcs,                   "전체 VPC 목록"),
+    "igw":       (list_igw,                    "인터넷 게이트웨이 목록"),
+    "nat":       (list_nat_gateways,           "NAT 게이트웨이 목록"),
+    "peering":   (list_peering_connections,    "VPC 피어링 목록"),
     "unused-sg": (find_unused_security_groups, "미사용 보안 그룹 탐지"),
     "low-ip":    (lambda: find_low_ip_subnets(20), "IP 고갈 위험 서브넷"),
 }
@@ -311,6 +369,8 @@ if __name__ == "__main__":
     elif cmd == "endpoints":
         vpc_id = sys.argv[2] if len(sys.argv) >= 3 else None
         print_table(list_vpc_endpoints(vpc_id))
+    elif cmd == "sg-list" and len(sys.argv) >= 3:
+        print_table(list_sg_in_vpc(sys.argv[2]))
     elif cmd == "sg-rules" and len(sys.argv) >= 3:
         print(json.dumps(describe_sg_rules(sys.argv[2]), indent=2, ensure_ascii=False))
     elif cmd == "flow-logs":
@@ -328,5 +388,6 @@ if __name__ == "__main__":
         print("  rtb VPC_ID           라우팅 테이블 목록")
         print("  routes RTB_ID        라우팅 경로 상세")
         print("  endpoints [VPC_ID]   VPC 엔드포인트 목록")
+        print("  sg-list VPC_ID       VPC 내 보안 그룹 목록")
         print("  sg-rules SG_ID       보안 그룹 규칙 상세")
         print("  flow-logs [VPC_ID]   Flow Logs 활성화 여부")

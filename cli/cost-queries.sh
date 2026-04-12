@@ -151,12 +151,88 @@ find_old_snapshots() {
     --output table
 }
 
+# ─── 리전별 비용 ──────────────────────────────────────────────────────────────
+
+# 리전별 이번 달 비용
+cost_by_region() {
+  aws ce get-cost-and-usage \
+    --time-period Start="$FIRST_OF_MONTH",End="$TODAY" \
+    --granularity MONTHLY \
+    --metrics BlendedCost \
+    --group-by Type=DIMENSION,Key=REGION \
+    --query 'ResultsByTime[0].Groups | reverse(sort_by(@, &Metrics.BlendedCost.Amount)) | [].[Keys[0], Metrics.BlendedCost.Amount]' \
+    --output table
+}
+
+# ─── 전월 대비 비교 ───────────────────────────────────────────────────────────
+
+# 이번 달 vs 지난달 서비스별 비용 비교
+compare_month_over_month() {
+  echo "[지난달 서비스별 비용]"
+  aws ce get-cost-and-usage \
+    --time-period Start="$LAST_MONTH_START",End="$LAST_MONTH_END" \
+    --granularity MONTHLY \
+    --metrics BlendedCost \
+    --group-by Type=DIMENSION,Key=SERVICE \
+    --query 'ResultsByTime[0].Groups | reverse(sort_by(@, &Metrics.BlendedCost.Amount)) | [0:10].[Keys[0], Metrics.BlendedCost.Amount]' \
+    --output table
+
+  echo ""
+  echo "[이번 달 서비스별 비용 (현재까지)]"
+  aws ce get-cost-and-usage \
+    --time-period Start="$FIRST_OF_MONTH",End="$TODAY" \
+    --granularity MONTHLY \
+    --metrics BlendedCost \
+    --group-by Type=DIMENSION,Key=SERVICE \
+    --query 'ResultsByTime[0].Groups | reverse(sort_by(@, &Metrics.BlendedCost.Amount)) | [0:10].[Keys[0], Metrics.BlendedCost.Amount]' \
+    --output table
+}
+
+# ─── 비용 예측 ────────────────────────────────────────────────────────────────
+
+# 이번 달 말까지 비용 예측
+forecast_monthly_cost() {
+  local end_of_month
+  end_of_month=$(date -v+1m -v1d +"%Y-%m-%d" 2>/dev/null \
+    || date -d "$(date +%Y-%m-01) +1 month" +"%Y-%m-%d")
+
+  aws ce get-cost-forecast \
+    --time-period Start="$TODAY",End="$end_of_month" \
+    --metric BLENDED_COST \
+    --granularity MONTHLY \
+    --query '[Total.[Amount, Unit], ForecastResultsByTime[0].[PredictionIntervalLowerBound, PredictionIntervalUpperBound]]' \
+    --output json
+}
+
 # ─── Savings Plans / RI 현황 ──────────────────────────────────────────────────
 
-# Savings Plans 현황
+# Savings Plans 현황 (목록)
 list_savings_plans() {
   aws savingsplans describe-savings-plans \
     --query 'savingsPlans[].[savingsPlanId, savingsPlanType, state, commitment, currency, termDurationInSeconds]' \
+    --output table
+}
+
+# Savings Plans 활용률 (최근 30일)
+savings_plans_utilization() {
+  local start
+  start=$(date -v-30d +"%Y-%m-%d" 2>/dev/null || date -d "30 days ago" +"%Y-%m-%d")
+
+  aws ce get-savings-plans-utilization \
+    --time-period Start="$start",End="$TODAY" \
+    --query 'Total.[TotalCommitment, UsedCommitment, UnusedCommitment, UtilizationPercentage]' \
+    --output table
+}
+
+# RI 활용률 서비스별 (최근 30일)
+ri_utilization() {
+  local start
+  start=$(date -v-30d +"%Y-%m-%d" 2>/dev/null || date -d "30 days ago" +"%Y-%m-%d")
+
+  aws ce get-reservation-utilization \
+    --time-period Start="$start",End="$TODAY" \
+    --group-by Type=DIMENSION,Key=SERVICE \
+    --query 'UtilizationsByTime[0].Groups[].[Keys[0], Utilization.UtilizationPercentage, Utilization.PurchasedHours, Utilization.UsedHours, Utilization.UnusedHours]' \
     --output table
 }
 
@@ -167,12 +243,17 @@ case "${1:-}" in
   last-month)     cost_by_service_last_month ;;
   by-tag)         cost_by_tag "$2" "$3" "$4" ;;
   by-account)     cost_by_account "$2" "$3" ;;
+  by-region)      cost_by_region ;;
+  mom)            compare_month_over_month ;;
+  forecast)       forecast_monthly_cost ;;
   spike)          detect_cost_spike ;;
   unused-eip)     find_unused_eip ;;
   unused-ebs)     find_unused_ebs ;;
   stopped)        find_stopped_instances ;;
   old-snapshots)  find_old_snapshots ;;
   savings-plans)  list_savings_plans ;;
+  sp-util)        savings_plans_utilization ;;
+  ri-util)        ri_utilization ;;
   *)
     echo "사용법: $0 <명령> [인수]"
     echo ""
@@ -181,11 +262,16 @@ case "${1:-}" in
     echo "  last-month              지난달 서비스별 비용"
     echo "  by-tag [TAG] [START] [END]  태그별 비용"
     echo "  by-account [START] [END]    계정별 비용"
-    echo "  spike                   비용 급등 탐지"
+    echo "  by-region               리전별 비용"
+    echo "  mom                     이번 달 vs 지난달 비교"
+    echo "  forecast                월말 비용 예측"
+    echo "  spike                   비용 급등 탐지 (어제 vs 지난주)"
     echo "  unused-eip              미연결 EIP"
     echo "  unused-ebs              미연결 EBS"
     echo "  stopped                 중지된 EC2"
-    echo "  old-snapshots           오래된 스냅샷"
-    echo "  savings-plans           Savings Plans 현황"
+    echo "  old-snapshots           오래된 스냅샷 (30일+)"
+    echo "  savings-plans           Savings Plans 목록"
+    echo "  sp-util                 Savings Plans 활용률"
+    echo "  ri-util                 RI 활용률 서비스별"
     ;;
 esac

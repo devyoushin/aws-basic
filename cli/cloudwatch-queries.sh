@@ -35,6 +35,21 @@ list_all_alarm_states() {
     --query 'length(MetricAlarms)' --output text | xargs -I{} echo "  {} 개"
 }
 
+# 특정 알람의 상태 변경 이력 (최근 7일)
+get_alarm_history() {
+  local alarm_name="${1:?알람 이름을 입력하세요}"
+  local start_time
+  start_time=$(date -u -v-7d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "7 days ago" +"%Y-%m-%dT%H:%M:%SZ")
+
+  aws cloudwatch describe-alarm-history \
+    --region "$REGION" \
+    --alarm-name "$alarm_name" \
+    --history-item-type StateUpdate \
+    --start-date "$start_time" \
+    --query 'AlarmHistoryItems[].[Timestamp, HistorySummary]' \
+    --output table
+}
+
 # 특정 이름 패턴으로 알람 검색
 search_alarms() {
   local pattern="${1:?검색할 알람 이름 패턴을 입력하세요}"
@@ -200,6 +215,81 @@ query_lambda_cold_starts() {
     24
 }
 
+# SQS 메시지 수 및 메시지 체류 시간 (최근 1시간)
+get_sqs_metrics() {
+  local queue_name="${1:?SQS 큐 이름을 입력하세요}"
+
+  echo "[가시 메시지 수 (Visible)]"
+  aws cloudwatch get-metric-statistics \
+    --region "$REGION" \
+    --namespace AWS/SQS \
+    --metric-name ApproximateNumberOfMessagesVisible \
+    --dimensions Name=QueueName,Value="$queue_name" \
+    --start-time "$ONE_HOUR_AGO" \
+    --end-time "$NOW" \
+    --period 300 \
+    --statistics Maximum \
+    --query 'sort_by(Datapoints, &Timestamp)[].[Timestamp, Maximum]' \
+    --output table
+
+  echo "[가장 오래된 메시지 체류 시간 (초)]"
+  aws cloudwatch get-metric-statistics \
+    --region "$REGION" \
+    --namespace AWS/SQS \
+    --metric-name ApproximateAgeOfOldestMessage \
+    --dimensions Name=QueueName,Value="$queue_name" \
+    --start-time "$ONE_HOUR_AGO" \
+    --end-time "$NOW" \
+    --period 300 \
+    --statistics Maximum \
+    --query 'sort_by(Datapoints, &Timestamp)[].[Timestamp, Maximum]' \
+    --output table
+}
+
+# Lambda 성능 분석 (호출 수, 에러율, Duration, 콜드스타트)
+get_lambda_metrics() {
+  local function_name="${1:?Lambda 함수 이름을 입력하세요}"
+
+  echo "[호출 수]"
+  aws cloudwatch get-metric-statistics \
+    --region "$REGION" \
+    --namespace AWS/Lambda \
+    --metric-name Invocations \
+    --dimensions Name=FunctionName,Value="$function_name" \
+    --start-time "$ONE_DAY_AGO" \
+    --end-time "$NOW" \
+    --period 3600 \
+    --statistics Sum \
+    --query 'sort_by(Datapoints, &Timestamp)[].[Timestamp, Sum]' \
+    --output table
+
+  echo "[에러 수]"
+  aws cloudwatch get-metric-statistics \
+    --region "$REGION" \
+    --namespace AWS/Lambda \
+    --metric-name Errors \
+    --dimensions Name=FunctionName,Value="$function_name" \
+    --start-time "$ONE_DAY_AGO" \
+    --end-time "$NOW" \
+    --period 3600 \
+    --statistics Sum \
+    --query 'sort_by(Datapoints, &Timestamp)[].[Timestamp, Sum]' \
+    --output table
+
+  echo "[평균 실행 시간 (ms)]"
+  aws cloudwatch get-metric-statistics \
+    --region "$REGION" \
+    --namespace AWS/Lambda \
+    --metric-name Duration \
+    --dimensions Name=FunctionName,Value="$function_name" \
+    --start-time "$ONE_DAY_AGO" \
+    --end-time "$NOW" \
+    --period 3600 \
+    --statistics Average Maximum \
+    --query 'sort_by(Datapoints, &Timestamp)[].[Timestamp, Average, Maximum]' \
+    --output table
+}
+
 # ─── 로그 그룹 관리 ───────────────────────────────────────────────────────────
 
 # 보존 기간이 설정되지 않은 로그 그룹 (비용 낭비)
@@ -223,10 +313,13 @@ list_log_groups_by_size() {
 case "${1:-}" in
   alarms)          list_alarms_in_alarm ;;
   alarm-states)    list_all_alarm_states ;;
+  alarm-history)   get_alarm_history "$2" ;;
   search-alarm)    search_alarms "$2" ;;
   ec2-cpu)         get_ec2_cpu "$2" ;;
   rds)             get_rds_metrics "$2" ;;
   alb-error)       get_alb_error_rate "$2" ;;
+  sqs)             get_sqs_metrics "$2" ;;
+  lambda)          get_lambda_metrics "$2" ;;
   query)           run_logs_insights "$2" "$3" "$4" ;;
   error-freq)      query_error_frequency "$2" ;;
   cold-start)      query_lambda_cold_starts "$2" ;;
@@ -235,16 +328,19 @@ case "${1:-}" in
   *)
     echo "사용법: $0 <명령> [인수]"
     echo ""
-    echo "  alarms              ALARM 상태인 알람 목록"
-    echo "  alarm-states        전체 알람 상태 요약"
-    echo "  search-alarm PREFIX 알람 이름 검색"
-    echo "  ec2-cpu INSTANCE_ID EC2 CPU 사용률"
-    echo "  rds DB_ID           RDS CPU + 커넥션 수"
-    echo "  alb-error LB_SUFFIX ALB 5xx 에러율"
-    echo "  query GROUP QUERY [HOURS]  Logs Insights 쿼리"
-    echo "  error-freq LOG_GROUP       에러 빈도 분석"
-    echo "  cold-start FUNCTION        Lambda 콜드스타트"
-    echo "  no-retention               보존 기간 미설정 로그 그룹"
-    echo "  log-size                   로그 그룹 크기 순 정렬"
+    echo "  alarms                    ALARM 상태인 알람 목록"
+    echo "  alarm-states              전체 알람 상태 요약"
+    echo "  alarm-history ALARM_NAME  알람 상태 변경 이력 (7일)"
+    echo "  search-alarm PREFIX       알람 이름 검색"
+    echo "  ec2-cpu INSTANCE_ID       EC2 CPU 사용률"
+    echo "  rds DB_ID                 RDS CPU + 커넥션 수"
+    echo "  alb-error LB_SUFFIX       ALB 5xx 에러율"
+    echo "  sqs QUEUE_NAME            SQS 메시지 수 및 체류 시간"
+    echo "  lambda FUNCTION_NAME      Lambda 호출/에러/Duration"
+    echo "  query GROUP QUERY [HOURS] Logs Insights 쿼리"
+    echo "  error-freq LOG_GROUP      에러 빈도 분석"
+    echo "  cold-start FUNCTION       Lambda 콜드스타트 분석"
+    echo "  no-retention              보존 기간 미설정 로그 그룹"
+    echo "  log-size                  로그 그룹 크기 순 정렬"
     ;;
 esac
