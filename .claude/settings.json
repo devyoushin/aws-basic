@@ -1,0 +1,46 @@
+{
+  "model": "claude-sonnet-4-6",
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git mv:*)",
+      "Bash(mkdir -p:*)",
+      "Bash(chmod +x:*)",
+      "Bash(ls:*)",
+      "Bash(find docs -name:*)",
+      "Bash(wc -l:*)",
+      "Bash(aws sts get-caller-identity:*)",
+      "Bash(aws configure list:*)",
+      "Bash(aws configure list-profiles:*)"
+    ],
+    "deny": [
+      "Bash(aws iam delete-*)",
+      "Bash(aws iam detach-*)",
+      "Bash(aws ec2 terminate-instances:*)",
+      "Bash(aws ec2 delete-*)",
+      "Bash(aws s3 rb:*)",
+      "Bash(aws s3 rm --recursive:*)",
+      "Bash(aws rds delete-db-instance:*)",
+      "Bash(aws rds delete-db-cluster:*)",
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(echo $CLAUDE_TOOL_INPUT | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))\" 2>/dev/null); [ -n \"$file\" ] && echo \"[aws-basic] 저장: $(basename $file)\""
+          }
+        ]
+      }
+    ]
+  }
+}

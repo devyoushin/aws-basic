@@ -1,100 +1,169 @@
 # aws-basic
 
-AWS 운영 경험을 바탕으로 정리한 실무 지식 베이스입니다.
-실제 장애 대응, 트러블슈팅, 베스트 프랙티스를 중심으로 작성되었습니다.
+AWS 운영 경험을 바탕으로 실제 업무에서 겪은 이슈, 트러블슈팅, 베스트 프랙티스를 정리한 개인 지식 베이스입니다.
 
 ---
 
-## 카테고리
+## 구조
 
-### 보안 (Security)
-- [AWS 자격 증명 (Credentials)](aws-credentials.md) — 우선순위, IAM Role 가정, SSO, .gitignore
-- [IMDS v1 vs v2](aws-security-imds.md) — SSRF 방어, 컨테이너 hop limit, 401 해결
-- [SHA-256 활용](aws-security-sha256-usage.md) — Lambda hash, S3 체크섬, Signature V4
-- [IAM Permission Boundary](iam-permission-boundary.md) — 권한 에스컬레이션 방지, SCP 조합, 개발팀 위임 패턴
-- [CloudTrail 보안 감사 자동화](cloudtrail-security-audit.md) — Metric Filter 알람, Athena 쿼리, EventBridge 연동
-- [WAF 규칙 & Rate Limiting](waf-rate-limiting.md) — Managed Rule Group, Rate-based Rule, False Positive 대응
-
-### Direct Connect (DX)
-- [DX 로케이션 & 물리 연결](dx-location.md) — Colocation, LOA-CFA, Cross-Connect
-- [DX 모니터링](dx-monitoring.md) — 광레벨, ConnectionState, VIF 지표
-- [DX 패킷 손실 분석](dx-packet-loss.md) — 대역폭 포화, microburst, 물리 오류
-- [BGP & VIF Down 시나리오](dx-bgp-vif-down-scenario.md) — 영향 분석, 책임 범위 정리
-- [Resiliency 구성](dx-building-resiliency.md) — High/Maximum 모델, VPN 백업
-
-### EC2
-- [Amazon Linux 2 vs AL2023](ec2-al2-al2023.md) — dnf, SELinux, SSH RSA 차단 이슈
-- [AL2 → AL2023 마이그레이션 (IP 유지)](ec2-al2023-migration.md) — ENI Swap, EIP 재연결, NLB Target 교체
-- [ASG 내 Stop/Start](ec2-autoscaling-stop-start.md) — Standby 상태, 프로세스 중단
-- [Dedicated Instance](ec2-dedicated-instance.md) — 단일 테넌트, Dedicated Host 차이, 비용
-- [GPU 텔레메트리 수집](ec2-gpu-telemetry-capturing.md) — NVIDIA DCGM, Xid 오류, CloudWatch
-- [물리 호스트 교체](ec2-physical-host-change.md) — Stop&Start 원리, 인스턴스 스토어 주의
-- [Spot 인스턴스 운영](ec2-spot-instance.md) — 중단 알림, Mixed Instances Policy, Node Termination Handler
-- [EBS 성능 최적화](ec2-ebs-performance.md) — gp2→gp3 마이그레이션, BurstBalance, fio 벤치마크
-- [SSM Session Manager](ec2-ssm-session-manager.md) — SSH 대체, VPC 엔드포인트, 포트 포워딩
-- [UserData / cloud-init](ec2-userdata-cloud-init.md) — 실행 단계, bash vs cloud-config, 디버깅
-- [Launch Template](ec2-launch-template.md) — vs Launch Configuration, 버전 관리, ASG/EKS 연동
-- [Placement Group](ec2-placement-group.md) — Cluster/Spread/Partition 전략, EFA 조합
-- [AMI 관리 (Golden AMI)](ec2-ami-management.md) — Packer, EC2 Image Builder, 미사용 AMI 정리
-- [Enhanced Networking (ENA)](ec2-enhanced-networking.md) — SR-IOV, 기준/버스트 대역폭, iperf3
-- [EC2 인스턴스 타입 선택](ec2-instance-types.md) — 패밀리 개요, Graviton ARM64, 멀티아치 빌드
-
-### EKS
-- [ImagePullPolicy](eks-imagepullpolicy.md) — Always/IfNotPresent/Never, ECR 인증, ImagePullBackOff
-- [Karpenter vs Cluster Autoscaler](eks-karpenter-vs-cluster-autoscaler.md) — 아키텍처 비교, NodePool, 마이그레이션
-- [IRSA (IAM Roles for Service Accounts)](eks-irsa.md) — OIDC 토큰 교환 플로우 심화, STS 검증 단계, Trust Policy, Cross-account
-- [VPC CNI 네트워킹](eks-networking-vpc-cni.md) — ENI/IP 한도, Prefix Delegation, IP 고갈 해결
-- [클러스터 업그레이드 전략](eks-upgrade-strategy.md) — 버전 정책, 업그레이드 순서, deprecated API 탐지
-- [CoreDNS 튜닝](eks-coredns-tuning.md) — ndots:5 문제, NodeLocal DNSCache, Corefile 커스터마이징
-- [PersistentVolume (EBS/EFS CSI)](eks-persistent-volume.md) — StorageClass gp3, StatefulSet, VolumeSnapshot, EFS 다중 Access Point 격리
-- [HPA / VPA / KEDA](eks-hpa-vpa.md) — 스케일링 공식, VPA 모드, KEDA SQS 연동
-- [Node Drain & Cordon](eks-node-drain-cordon.md) — drain 흐름, PDB, preStop 훅, 강제 drain 위험성
-- [Secrets 관리 (ESO)](eks-secrets-management.md) — External Secrets Operator, ClusterSecretStore, IRSA 연동
-- [Pod Security (PSA / Falco)](eks-pod-security.md) — PSA 3단계, SecurityContext, Falco 런타임 탐지
-- [Network Policy](eks-network-policy.md) — Default-deny 패턴, namespace selector AND/OR, DNS egress 허용
-- [Managed Node Group](eks-managed-nodegroup.md) — Managed vs Self-managed, Karpenter 역할 분리, taint/label
-- [Resource Requests & Limits](eks-resource-requests-limits.md) — QoS 클래스, OOMKilled/CPU throttling, LimitRange, ResourceQuota
-
-### CloudWatch / 모니터링
-- [커스텀 지표 수집](cloudwatch-custom-metric.md) — Agent config, put-metric-data, GPU 지표 스크립트
-- [Fluent Bit on EKS](cloudwatch-eks-fluentbit.md) — DaemonSet, IRSA, 멀티라인 파싱
-- [Container Insights](cloudwatch-container-insights.md) — EKS/ECS 지표, 성능 패널, 비용 최적화
-- [Composite Alarm](cloudwatch-alarm-composite.md) — AND/OR 조합, Alarm Storm 방지, 계층형 알람
-- [Logs Insights](cloudwatch-log-insights.md) — 쿼리 문법, 집계/파싱, 대시보드 연동
-- [Metric Math](cloudwatch-metric-math.md) — 수식, 에러율/포화도 계산, ANOMALY_DETECTION
-- [CloudWatch Agent 설정](cloudwatch-agent-config.md) — 메모리/디스크/procstat, EC2/EKS DaemonSet 배포
-- [Synthetics Canary](cloudwatch-synthetics.md) — API/UI 외부 모니터링, Puppeteer 스크립트
-- [Embedded Metrics Format (EMF)](cloudwatch-embedded-metrics.md) — 구조화 지표, Lambda/컨테이너 로그 기반 지표
-- [크로스 계정 모니터링 (OAM)](cloudwatch-cross-account.md) — Sink/Link, Organizations 통합
-- [대시보드 설계 Best Practice](cloudwatch-dashboard-best-practice.md) — USE/RED 메서드, Variable, 위젯 패턴
-- [RUM (Real User Monitoring)](cloudwatch-rum.md) — 프론트엔드 성능, Core Web Vitals, 커스텀 이벤트
-- [Evidently (Feature Flag / A/B)](cloudwatch-evidently.md) — Launch/Experiment, Kill Switch
-
-### 네트워크 / 로드밸런서
-- [NLB 포트 포워딩](nlb-ec2-port-forwarding.md) — Terraform, 헬스체크, SG 트러블슈팅
-- [VPC Flow Logs 분석](vpc-flow-logs-analysis.md) — 레코드 필드, Athena DDL, 보안 감사 쿼리
-- [Route 53 Failover 라우팅](route53-failover-routing.md) — 헬스체크 유형, TTL 설정, Active-Passive 패턴
-- [VPC & Subnet 설계 전략](vpc-subnet-design.md) — CIDR 크기 기준, 3계층 설계, IP 고갈 대응, Secondary CIDR
-- [VPC Endpoint](vpc-endpoint.md) — Gateway/Interface 비교, ECR/SSM/S3 Endpoint, NAT GW 비용 절감
-- [Transit Gateway](aws-transit-gateway.md) — Hub-and-Spoke, 환경 격리, 멀티 계정 공유, VPN 연결
-
-### 스토리지
-- [S3 스토리지 클래스 & Lifecycle](s3-lifecycle-intelligent-tiering.md) — 클래스 비교, Intelligent-Tiering, 비용 최적화
-- [ECR 이미지 관리 & Lifecycle](ecr-lifecycle-policy.md) — 이미지 태그 전략, Lifecycle Policy, 취약점 스캔
-- [EFS Access Point](efs-access-point.md) — POSIX UID/GID 격리, 정적/동적 프로비저닝, EKS CSI 연동, Lambda 마운트, 크로스 계정 공유
-
-### 데이터베이스 / 캐시
-- [RDS 파라미터 그룹 튜닝](rds-parameter-group.md) — MySQL/PostgreSQL 파라미터, 슬로우 쿼리, 연결 관리
-- [Aurora 클러스터 운영](rds-aurora-cluster.md) — Writer/Reader 엔드포인트, 페일오버, Auto Scaling, Clone
-- [ElastiCache Redis 클러스터](elasticache-redis-cluster.md) — 클러스터 모드, maxmemory-policy, 페일오버, Eviction
-
-### 배포 (Deploy)
-- [CodeDeploy](aws-codedeploy.md) — In-Place/Blue-Green 배포, AppSpec Lifecycle Hook, Terraform, 롤백
-
-### 비용 최적화 / 거버넌스
-- [AWS 비용 최적화](aws-cost-optimization.md) — Savings Plans vs RI vs Spot, 미사용 리소스 탐지, Budget 알람
-- [AWS Organizations 멀티 계정](aws-organizations-multi-account.md) — OU 구조, SCP 가드레일, SSO, 멀티 계정 전략
+```
+aws-basic/
+├── docs/          지식 문서 (10개 카테고리, 71개 파일)
+├── cli/           AWS CLI 스크립트 (8개)
+├── sdk/           Python boto3 모듈 (8개)
+├── lambda/        Lambda 함수 예제 (8개)
+├── templates/     문서 템플릿 (3개)
+├── rules/         Claude 작성 규칙 (4개)
+└── agents/        Claude 에이전트 정의 (4개)
+```
 
 ---
 
-> 문서 작성 규칙 및 템플릿은 [CLAUDE.md](CLAUDE.md)를 참고하세요.
+## 문서 목록
+
+### EC2 [`docs/ec2/`](docs/ec2/)
+
+| 파일 | 주제 |
+|------|------|
+| [ec2-al2-al2023](docs/ec2/ec2-al2-al2023.md) | Amazon Linux 2 vs AL2023 |
+| [ec2-al2023-migration](docs/ec2/ec2-al2023-migration.md) | AL2 → AL2023 마이그레이션 IP 유지 |
+| [ec2-ami-management](docs/ec2/ec2-ami-management.md) | Golden AMI 파이프라인, Packer, Image Builder |
+| [ec2-autoscaling-stop-start](docs/ec2/ec2-autoscaling-stop-start.md) | ASG Stop/Start, Standby 상태 |
+| [ec2-dedicated-instance](docs/ec2/ec2-dedicated-instance.md) | Dedicated Instance vs Dedicated Host |
+| [ec2-ebs-performance](docs/ec2/ec2-ebs-performance.md) | gp2→gp3 마이그레이션, BurstBalance |
+| [ec2-enhanced-networking](docs/ec2/ec2-enhanced-networking.md) | ENA SR-IOV, iperf3 |
+| [ec2-gpu-telemetry-capturing](docs/ec2/ec2-gpu-telemetry-capturing.md) | GPU 텔레메트리, NVIDIA DCGM |
+| [ec2-instance-types](docs/ec2/ec2-instance-types.md) | 인스턴스 패밀리, Graviton ARM64 |
+| [ec2-launch-template](docs/ec2/ec2-launch-template.md) | Launch Template 버전 관리 |
+| [ec2-physical-host-change](docs/ec2/ec2-physical-host-change.md) | 물리 호스트 교체, 인스턴스 스토어 |
+| [ec2-placement-group](docs/ec2/ec2-placement-group.md) | Cluster/Spread/Partition 전략 |
+| [ec2-rolling-maintenance](docs/ec2/ec2-rolling-maintenance.md) | Target Group 연동 롤링 PM 자동화 |
+| [ec2-snapshot-root-volume-recovery](docs/ec2/ec2-snapshot-root-volume-recovery.md) | EBS 스냅샷, 루트 볼륨 복구, DLM |
+| [ec2-spot-instance](docs/ec2/ec2-spot-instance.md) | Spot 운영, 중단 알림, NTH |
+| [ec2-ssm-session-manager](docs/ec2/ec2-ssm-session-manager.md) | SSM Session Manager (SSH 대체) |
+| [ec2-userdata-cloud-init](docs/ec2/ec2-userdata-cloud-init.md) | UserData/cloud-init 실행 단계 |
+
+### EKS [`docs/eks/`](docs/eks/)
+
+| 파일 | 주제 |
+|------|------|
+| [eks-coredns-tuning](docs/eks/eks-coredns-tuning.md) | CoreDNS ndots:5, NodeLocal DNSCache |
+| [eks-hpa-vpa](docs/eks/eks-hpa-vpa.md) | HPA/VPA, KEDA SQS 연동 |
+| [eks-imagepullpolicy](docs/eks/eks-imagepullpolicy.md) | ImagePullPolicy, ECR 인증, ImagePullBackOff |
+| [eks-irsa](docs/eks/eks-irsa.md) | IRSA 토큰 교환 플로우, Cross-account |
+| [eks-karpenter-vs-cluster-autoscaler](docs/eks/eks-karpenter-vs-cluster-autoscaler.md) | Karpenter vs CA 비교 |
+| [eks-managed-nodegroup](docs/eks/eks-managed-nodegroup.md) | Managed vs Self-managed NodeGroup |
+| [eks-network-policy](docs/eks/eks-network-policy.md) | NetworkPolicy Default-deny |
+| [eks-networking-vpc-cni](docs/eks/eks-networking-vpc-cni.md) | VPC CNI, Prefix Delegation, IP 고갈 |
+| [eks-node-drain-cordon](docs/eks/eks-node-drain-cordon.md) | Drain/Cordon, PDB, preStop 훅 |
+| [eks-persistent-volume](docs/eks/eks-persistent-volume.md) | EBS/EFS CSI, gp3 StorageClass |
+| [eks-pod-security](docs/eks/eks-pod-security.md) | PSA 3단계, Falco 런타임 탐지 |
+| [eks-resource-requests-limits](docs/eks/eks-resource-requests-limits.md) | QoS, OOMKilled, LimitRange |
+| [eks-secrets-management](docs/eks/eks-secrets-management.md) | External Secrets Operator, IRSA 연동 |
+| [eks-upgrade-strategy](docs/eks/eks-upgrade-strategy.md) | 클러스터 업그레이드, deprecated API |
+
+### CloudWatch [`docs/cloudwatch/`](docs/cloudwatch/)
+
+| 파일 | 주제 |
+|------|------|
+| [cloudwatch-agent-config](docs/cloudwatch/cloudwatch-agent-config.md) | CWAgent 메모리/디스크/procstat |
+| [cloudwatch-alarm-composite](docs/cloudwatch/cloudwatch-alarm-composite.md) | Composite Alarm, Alarm Storm 방지 |
+| [cloudwatch-container-insights](docs/cloudwatch/cloudwatch-container-insights.md) | EKS/ECS Container Insights |
+| [cloudwatch-cross-account](docs/cloudwatch/cloudwatch-cross-account.md) | OAM 크로스 계정, Sink/Link |
+| [cloudwatch-custom-metric](docs/cloudwatch/cloudwatch-custom-metric.md) | 커스텀 지표, GPU 스크립트 |
+| [cloudwatch-dashboard-best-practice](docs/cloudwatch/cloudwatch-dashboard-best-practice.md) | USE/RED 메서드, 대시보드 설계 |
+| [cloudwatch-eks-fluentbit](docs/cloudwatch/cloudwatch-eks-fluentbit.md) | Fluent Bit on EKS, DaemonSet |
+| [cloudwatch-embedded-metrics](docs/cloudwatch/cloudwatch-embedded-metrics.md) | EMF, Lambda/컨테이너 구조화 지표 |
+| [cloudwatch-evidently](docs/cloudwatch/cloudwatch-evidently.md) | Feature Flag, A/B 테스트, Kill Switch |
+| [cloudwatch-log-insights](docs/cloudwatch/cloudwatch-log-insights.md) | Logs Insights 쿼리, 집계/파싱 |
+| [cloudwatch-metric-math](docs/cloudwatch/cloudwatch-metric-math.md) | Metric Math, ANOMALY_DETECTION |
+| [cloudwatch-rum](docs/cloudwatch/cloudwatch-rum.md) | RUM, Core Web Vitals |
+| [cloudwatch-synthetics](docs/cloudwatch/cloudwatch-synthetics.md) | Synthetics Canary, Puppeteer |
+
+### Network [`docs/network/`](docs/network/)
+
+| 파일 | 주제 |
+|------|------|
+| [aws-transit-gateway](docs/network/aws-transit-gateway.md) | Hub-and-Spoke, 멀티 VPC 라우팅 |
+| [nlb-ec2-port-forwarding](docs/network/nlb-ec2-port-forwarding.md) | NLB 포트 포워딩, 헬스체크 |
+| [route53-failover-routing](docs/network/route53-failover-routing.md) | Failover 라우팅, Active-Passive |
+| [vpc-endpoint](docs/network/vpc-endpoint.md) | Gateway/Interface Endpoint, Private DNS |
+| [vpc-flow-logs-analysis](docs/network/vpc-flow-logs-analysis.md) | Flow Logs 분석, Athena 쿼리 |
+| [vpc-subnet-design](docs/network/vpc-subnet-design.md) | CIDR 설계, 3계층 구조, IP 고갈 |
+
+### Security [`docs/security/`](docs/security/)
+
+| 파일 | 주제 |
+|------|------|
+| [aws-credentials](docs/security/aws-credentials.md) | 자격 증명 우선순위, SSO 활용 |
+| [aws-security-imds](docs/security/aws-security-imds.md) | IMDSv1 vs v2, SSRF 방어 |
+| [aws-security-sha256-usage](docs/security/aws-security-sha256-usage.md) | SHA-256, Lambda hash, Sig V4 |
+| [cloudtrail-security-audit](docs/security/cloudtrail-security-audit.md) | CloudTrail, 보안 이벤트 알람 |
+| [iam-permission-boundary](docs/security/iam-permission-boundary.md) | Permission Boundary, 에스컬레이션 방지 |
+| [waf-rate-limiting](docs/security/waf-rate-limiting.md) | WAF Managed Rules, Rate-based Rule |
+
+### Storage [`docs/storage/`](docs/storage/)
+
+| 파일 | 주제 |
+|------|------|
+| [ecr-lifecycle-policy](docs/storage/ecr-lifecycle-policy.md) | ECR 태그 전략, 취약점 스캔 |
+| [efs-access-point](docs/storage/efs-access-point.md) | EFS Access Point, 다중 테넌트 격리 |
+| [s3-lifecycle-intelligent-tiering](docs/storage/s3-lifecycle-intelligent-tiering.md) | S3 스토리지 클래스, Intelligent-Tiering |
+
+### Database [`docs/database/`](docs/database/)
+
+| 파일 | 주제 |
+|------|------|
+| [elasticache-redis-cluster](docs/database/elasticache-redis-cluster.md) | Redis 클러스터 모드, Eviction |
+| [rds-aurora-cluster](docs/database/rds-aurora-cluster.md) | Aurora Writer/Reader, 페일오버 |
+| [rds-parameter-group](docs/database/rds-parameter-group.md) | 파라미터 튜닝, 슬로우 쿼리 로깅 |
+
+### Direct Connect [`docs/dx/`](docs/dx/)
+
+| 파일 | 주제 |
+|------|------|
+| [dx-bgp-vif-down-scenario](docs/dx/dx-bgp-vif-down-scenario.md) | BGP/VIF Down, 영향 분석 |
+| [dx-building-resiliency](docs/dx/dx-building-resiliency.md) | High/Maximum Resiliency, VPN 백업 |
+| [dx-location](docs/dx/dx-location.md) | DX 로케이션, Cross-Connect, LOA-CFA |
+| [dx-monitoring](docs/dx/dx-monitoring.md) | CloudWatch DX 지표, 광레벨 |
+| [dx-packet-loss](docs/dx/dx-packet-loss.md) | 패킷 손실, microburst, 물리 오류 |
+
+### Cost & Governance [`docs/cost/`](docs/cost/)
+
+| 파일 | 주제 |
+|------|------|
+| [aws-cost-optimization](docs/cost/aws-cost-optimization.md) | SP/RI/Spot, 미사용 리소스 탐지 |
+| [aws-organizations-multi-account](docs/cost/aws-organizations-multi-account.md) | OU 구조, SCP, IAM Identity Center |
+
+### Platform [`docs/platform/`](docs/platform/)
+
+| 파일 | 주제 |
+|------|------|
+| [aws-cli-internals](docs/platform/aws-cli-internals.md) | botocore 구조, SigV4, 페이지네이션 |
+| [aws-codedeploy](docs/platform/aws-codedeploy.md) | In-Place/Blue-Green 배포, AppSpec |
+
+---
+
+## 코드 예제
+
+### CLI 스크립트 [`cli/`](cli/)
+EC2, EKS, IAM, VPC, RDS, S3, CloudWatch, 비용 분석 쿼리 모음
+
+### SDK 모듈 [`sdk/`](sdk/)
+Python boto3 기반 쿼리 모듈 — 페이지네이션, 에러 처리 포함
+
+### Lambda 함수 [`lambda/`](lambda/)
+EC2 스케줄러, Slack 알림, S3 이벤트 처리, EBS 스냅샷 정리, 비용 이상 감지 등
+
+---
+
+## Claude 협업
+
+이 프로젝트는 Claude Code와 협업하도록 최적화되어 있습니다.
+
+| 커맨드 | 설명 |
+|--------|------|
+| `/new-doc ec2 nitro-system` | 신규 문서 스캐폴딩 |
+| `/new-runbook rds failover` | 운영 Runbook 생성 |
+| `/review-doc docs/eks/eks-irsa.md` | 문서 품질 검토 |
+| `/search-kb IRSA 토큰` | 지식 베이스 검색 |

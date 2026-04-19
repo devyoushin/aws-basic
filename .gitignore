@@ -1,0 +1,11 @@
+# Claude Code 로컬 설정 (개인 환경, 공유 불필요)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# macOS
+.DS_Store
+
+# 임시 파일
+*.tmp
+*.swp
+*~
