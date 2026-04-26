@@ -204,6 +204,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 |------|------|
 | `aws-cli-internals.md` | AWS CLI 동작 원리 (Python/botocore 구조, SigV4, 페이지네이션, v1 vs v2) |
 | `aws-codedeploy.md` | CodeDeploy In-Place/Blue-Green 배포, AppSpec Lifecycle Hook, Terraform, 롤백 |
+| `landing-zone-architecture.md` | Enterprise Landing Zone 구성도 (OU 계층, 데이터 흐름, 모니터링 알람 계층) |
 
 ---
 
