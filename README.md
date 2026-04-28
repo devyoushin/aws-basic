@@ -8,7 +8,7 @@ AWS 운영 경험을 바탕으로 실제 업무에서 겪은 이슈, 트러블�
 
 ```
 aws-basic/
-├── docs/          지식 문서 (10개 카테고리, 71개 파일)
+├── docs/          지식 문서 (10개 카테고리, 77개 파일)
 ├── cli/           AWS CLI 스크립트 (8개)
 ├── sdk/           Python boto3 모듈 (8개)
 ├── lambda/        Lambda 함수 예제 (8개)
@@ -42,6 +42,7 @@ aws-basic/
 | [ec2-spot-instance](docs/ec2/ec2-spot-instance.md) | Spot 운영, 중단 알림, NTH |
 | [ec2-ssm-session-manager](docs/ec2/ec2-ssm-session-manager.md) | SSM Session Manager (SSH 대체) |
 | [ec2-userdata-cloud-init](docs/ec2/ec2-userdata-cloud-init.md) | UserData/cloud-init 실행 단계 |
+| [ec2-rhel-upgrade](docs/ec2/ec2-rhel-upgrade.md) | RHEL 마이너 업그레이드 및 RHEL 8→9 Leapp 메이저 업그레이드 |
 
 ### EKS [`docs/eks/`](docs/eks/)
 
@@ -61,6 +62,9 @@ aws-basic/
 | [eks-resource-requests-limits](docs/eks/eks-resource-requests-limits.md) | QoS, OOMKilled, LimitRange |
 | [eks-secrets-management](docs/eks/eks-secrets-management.md) | External Secrets Operator, IRSA 연동 |
 | [eks-upgrade-strategy](docs/eks/eks-upgrade-strategy.md) | 클러스터 업그레이드, deprecated API |
+| [eks-eip-ip-strategy](docs/eks/eks-eip-ip-strategy.md) | EKS 노드 EIP 할당 한도, IP 전략 4가지 패턴 |
+| [eks-cilium-cni](docs/eks/eks-cilium-cni.md) | VPC CNI → Cilium 마이그레이션, eBPF, Hubble |
+| [eks-karpenter-iam-deep-dive](docs/eks/eks-karpenter-iam-deep-dive.md) | Karpenter IAM 권한 획득 원리, IRSA 토큰 흐름 |
 
 ### CloudWatch [`docs/cloudwatch/`](docs/cloudwatch/)
 
@@ -90,6 +94,7 @@ aws-basic/
 | [vpc-endpoint](docs/network/vpc-endpoint.md) | Gateway/Interface Endpoint, Private DNS |
 | [vpc-flow-logs-analysis](docs/network/vpc-flow-logs-analysis.md) | Flow Logs 분석, Athena 쿼리 |
 | [vpc-subnet-design](docs/network/vpc-subnet-design.md) | CIDR 설계, 3계층 구조, IP 고갈 |
+| [vpc-private-dnf-repo](docs/network/vpc-private-dnf-repo.md) | Private Subnet DNF/YUM 설치 (S3 Endpoint, RHUI, VPC Lattice) |
 
 ### Security [`docs/security/`](docs/security/)
 
@@ -141,6 +146,7 @@ aws-basic/
 |------|------|
 | [aws-cli-internals](docs/platform/aws-cli-internals.md) | botocore 구조, SigV4, 페이지네이션 |
 | [aws-codedeploy](docs/platform/aws-codedeploy.md) | In-Place/Blue-Green 배포, AppSpec |
+| [landing-zone-architecture](docs/platform/landing-zone-architecture.md) | Enterprise Landing Zone 구성도, OU 계층 |
 
 ---
 
