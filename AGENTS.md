@@ -34,3 +34,18 @@
 - 파일명/경로가 네이밍 규칙을 따르는지 확인 (`CLAUDE.md` 참고)
 - 보안/권한 관련이면 `rules/security-checklist.md`도 함께 점검
 
+## 5) Git 커밋 메시지 (AI 사용 표기)
+
+Claude/Codex 등 AI 도움을 받았으면 커밋 메시지 **본문 하단 트레일러**에 아래 키로 남깁니다.
+
+예시:
+
+```text
+chore: update docs
+
+AI-Assistant: Codex
+```
+
+- 키: `AI-Assistant:`
+- 값: `Claude` 또는 `Codex` (필요 시 `GPT` 등 확장 가능)
+- 권장: 한 커밋에서 한 값만 사용 (혼용이면 `Claude, Codex`처럼 콤마로 병기)
