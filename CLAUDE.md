@@ -161,6 +161,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 | `vpc-flow-logs-analysis.md` | VPC Flow Logs 분석, Athena DDL, 보안 감사 쿼리 패턴 |
 | `vpc-subnet-design.md` | VPC/Subnet CIDR 설계, 3계층 구조, IP 고갈 대응, Secondary CIDR |
 | `vpc-private-dnf-repo.md` | Private Subnet DNF/YUM 패키지 설치 (S3 Endpoint, RHUI, VPC Lattice 미러) |
+| `vpc-flow-logs-path-monitoring.md` | DX → TGW → NLB → EC2 구간별 Flow Logs 모니터링 및 트러블슈팅 |
 
 ### docs/security/
 | 파일 | 주제 |
