@@ -18,7 +18,8 @@ aws-basic/
 │   ├── database/    (3개)         # RDS, Aurora, ElastiCache
 │   ├── dx/          (5개)         # Direct Connect, BGP, VIF
 │   ├── cost/        (2개)         # 비용 최적화, Organizations
-│   └── platform/    (2개)         # CLI, CodeDeploy
+│   ├── platform/    (2개)         # CLI, CodeDeploy
+│   └── troubleshooting/           # 증상 중심 트러블슈팅 (서비스 횡단)
 │
 ├── cli/                           # AWS CLI 스크립트 (8개)
 ├── sdk/                           # Python boto3 모듈 (8개)
@@ -209,6 +210,18 @@ docs/{카테고리}/{서비스}-{주제}.md
 | `aws-cli-internals.md` | AWS CLI 동작 원리 (Python/botocore 구조, SigV4, 페이지네이션, v1 vs v2) |
 | `aws-codedeploy.md` | CodeDeploy In-Place/Blue-Green 배포, AppSpec Lifecycle Hook, Terraform, 롤백 |
 | `landing-zone-architecture.md` | Enterprise Landing Zone 구성도 (OU 계층, 데이터 흐름, 모니터링 알람 계층) |
+
+### docs/troubleshooting/
+증상 중심 트러블슈팅 — 서비스 카테고리를 횡단하는 실제 장애 사례를 기록합니다.
+파일명 패턴: `{서비스}-{증상}.md` / 인덱스: `_index.md`
+
+| 파일 | 증상 |
+|------|------|
+| `eks-pod-oomkilled.md` | Pod OOMKilled 반복 재시작 |
+| `eks-imagepullbackoff.md` | ImagePullBackOff — ECR 이미지 풀 실패 |
+| `ec2-ebs-burst-exhausted.md` | EBS BurstBalance 소진 — I/O 레이턴시 급등 |
+| `rds-connection-pool-exhausted.md` | RDS Too many connections |
+| `dx-bgp-flapping.md` | BGP 세션 Flapping — DX 트래픽 단절 |
 
 ---
 
