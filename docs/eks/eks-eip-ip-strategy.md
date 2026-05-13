@@ -382,3 +382,4 @@ aws cloudwatch put-metric-alarm \
 
 **관련 문서**
 - 연관 내부 문서: `docs/eks/eks-networking-vpc-cni.md`, `docs/network/vpc-subnet-design.md`, `docs/network/nlb-ec2-port-forwarding.md`
+- **Pod IP를 Secondary 서브넷으로 분리하는 Custom Networking 상세**: ENIConfig, 100.64.0.0/10 Secondary CIDR, Prefix Delegation 조합 → [eks-vpc-cni-custom-networking.md](./eks-vpc-cni-custom-networking.md)
