@@ -258,3 +258,4 @@ resource "aws_cloudwatch_metric_alarm" "subnet_ip_low" {
 - **VPC 설계 시 Pod IP 수요 사전 계산**: `노드 수 × 노드당 최대 Pod 수`가 서브넷 CIDR 범위 안에 들어야 함
 - **`/19` 서브넷 = 8,190개 IP**: 중규모 클러스터(노드 100대, 노드당 최대 80 Pod)에서 여유 있게 사용 가능
 - **100.64.0.0/10 (CGNAT)**: AWS VPC에 Secondary CIDR로 추가 가능한 대규모 IP 범위 — Pod 전용으로 활용 시 서브넷 IP 고갈 문제를 근본적으로 해결
+- **Custom Networking (노드/Pod 서브넷 분리) 상세**: ENIConfig CRD 설정, Secondary 서브넷 생성, Prefix Delegation 조합 방법 → [eks-vpc-cni-custom-networking.md](./eks-vpc-cni-custom-networking.md)
