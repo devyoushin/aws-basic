@@ -135,6 +135,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 | `eks-cilium-cni.md` | VPC CNI → Cilium 마이그레이션 전략, eBPF, Hubble, L7 정책 |
 | `eks-karpenter-iam-deep-dive.md` | Karpenter IAM 권한 획득 원리, IRSA 토큰 흐름, /var/run, 노드 프로비저닝 |
 | `eks-karpenter-nodepool-schedule.md` | NodePool limits 스케줄 스케일다운 (EventBridge + Lambda, 야간/휴일 비용 절감) |
+| `eks-vpc-cni-custom-networking.md` | VPC CNI Custom Networking — Secondary 서브넷으로 Pod IP 분리 (ENIConfig, 100.64/10, Prefix Delegation 조합) |
 
 ### docs/cloudwatch/
 | 파일 | 주제 |
