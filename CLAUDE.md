@@ -14,29 +14,29 @@ aws-basic/
 │   ├── cloudwatch/  (13개)        # 지표, 알람, 로그, 대시보드
 │   ├── network/     (6개)         # VPC, NLB, Route53, TGW
 │   ├── security/    (6개)         # IAM, CloudTrail, WAF, IMDS
-│   ├── storage/     (3개)         # S3, ECR, EFS
+│   ├── docs/storage/     (3개)         # S3, ECR, EFS
 │   ├── database/    (3개)         # RDS, Aurora, ElastiCache
 │   ├── dx/          (5개)         # Direct Connect, BGP, VIF
 │   ├── cost/        (2개)         # 비용 최적화, Organizations
 │   ├── platform/    (2개)         # CLI, CodeDeploy
 │   └── troubleshooting/           # 증상 중심 트러블슈팅 (서비스 횡단)
 │
-├── cli/                           # AWS CLI 스크립트 (8개)
-├── sdk/                           # Python boto3 모듈 (8개)
-├── lambda/                        # Lambda 함수 예제 (8개)
+├── ops/cli/                           # AWS CLI 스크립트 (8개)
+├── ops/sdk/                           # Python boto3 모듈 (8개)
+├── ops/lambda/                        # Lambda 함수 예제 (8개)
 │
-├── templates/                     # 재사용 문서 템플릿
+├── docs/templates/                     # 재사용 문서 템플릿
 │   ├── service-doc.md             # 서비스 문서 스캐폴딩
 │   ├── runbook.md                 # 운영 Runbook
 │   └── incident-report.md        # 장애 보고서
 │
-├── rules/                         # Claude 작성 규칙
+├── docs/rules/                         # Claude 작성 규칙
 │   ├── doc-writing.md             # 문서 스타일 가이드
 │   ├── aws-conventions.md         # CLI/Terraform/boto3 코드 규칙
 │   ├── security-checklist.md      # 보안 검토 체크리스트
 │   └── monitoring.md              # 모니터링/알람 작성 기준
 │
-├── agents/                        # Claude 전문 에이전트
+├── docs/agents/                        # Claude 전문 에이전트
 │   ├── doc-writer.md              # 문서 작성 에이전트
 │   ├── incident-analyzer.md       # 장애 분석 에이전트
 │   ├── cost-reviewer.md           # 비용 최적화 에이전트
@@ -86,7 +86,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 4. **한국어 기술 문서** — 주요 개념은 영어 원문 병기
 5. **모니터링 필수** — 모든 문서에 CloudWatch 지표/알람 포함
 
-세부 규칙은 `rules/` 디렉토리를 참조합니다.
+세부 규칙은 `docs/rules/` 디렉토리를 참조합니다.
 
 ---
 

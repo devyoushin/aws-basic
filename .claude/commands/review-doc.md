@@ -16,7 +16,7 @@ description: 기존 AWS 문서를 검토하고 개선점을 제안합니다. 사
 - [ ] AWS CLI 예시에 `--region` 이 명시됐는지
 - [ ] Terraform 예시에 tags 블록이 있는지
 
-### 3. 보안 검토 (`rules/security-checklist.md` 기준)
+### 3. 보안 검토 (`docs/rules/security-checklist.md` 기준)
 - [ ] 하드코딩된 민감 정보 없는지
 - [ ] 과도한 IAM 권한 예시 없는지
 - [ ] `0.0.0.0/0` 사용 시 주의 문구 있는지

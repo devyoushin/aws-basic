@@ -27,9 +27,9 @@ AWS 운영 경험 기반의 기술 문서를 작성하는 전문 에이전트입
 ## 참조 규칙 파일
 
 작업 시 아래 규칙 파일을 반드시 준수합니다:
-- `rules/doc-writing.md` — 문서 작성 스타일
-- `rules/aws-conventions.md` — 코드 작성 규칙
-- `rules/security-checklist.md` — 보안 검토 기준
+- `docs/rules/doc-writing.md` — 문서 작성 스타일
+- `docs/rules/aws-conventions.md` — 코드 작성 규칙
+- `docs/rules/security-checklist.md` — 보안 검토 기준
 
 ## 사용 방법
 

@@ -12,9 +12,9 @@ description: AWS 서비스 신규 문서를 스캐폴딩합니다. 사용법: /n
 ## 파일 생성 규칙
 1. 파일명: `{서비스}-{주제}.md` (모두 소문자, 단어 구분은 하이픈)
 2. 저장 위치: 프로젝트 루트 (`/Users/sunny/Desktop/aws-basic/`)
-3. `rules/doc-writing.md` 의 문서 작성 규칙 준수
-4. `rules/aws-conventions.md` 의 코드 작성 규칙 준수
-5. `rules/security-checklist.md` 의 보안 체크리스트 통과
+3. `docs/rules/doc-writing.md` 의 문서 작성 규칙 준수
+4. `docs/rules/aws-conventions.md` 의 코드 작성 규칙 준수
+5. `docs/rules/security-checklist.md` 의 보안 체크리스트 통과
 
 ## 문서 구조 (반드시 아래 섹션 모두 포함)
 

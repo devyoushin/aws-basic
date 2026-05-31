@@ -10,11 +10,11 @@
 | 증상 | 서비스 | 파일 |
 |------|--------|------|
 | 멀티홉 구조 Backend 간헐적 Timeout — UTM에서 SYN만 관찰됨 | NLB/UTM/TGW/ALB/APIGW/EKS+Istio | [network-backend-timeout-syn-utm.md](network-backend-timeout-syn-utm.md) |
-| Pod가 OOMKilled로 계속 재시작됨 | EKS | [eks-pod-oomkilled.md](eks-pod-oomkilled.md) |
-| ImagePullBackOff — ECR 이미지 못 가져옴 | EKS / ECR | [eks-imagepullbackoff.md](eks-imagepullbackoff.md) |
-| EBS BurstBalance 소진 — I/O 레이턴시 급등 | EC2 / EBS | [ec2-ebs-burst-exhausted.md](ec2-ebs-burst-exhausted.md) |
-| RDS 연결 수 초과 — Too many connections | RDS | [rds-connection-pool-exhausted.md](rds-connection-pool-exhausted.md) |
-| BGP 세션 Flapping — DX 경유 트래픽 단절 | Direct Connect | [dx-bgp-flapping.md](dx-bgp-flapping.md) |
+| Pod가 OOMKilled로 계속 재시작됨 | EKS | `eks-pod-oomkilled.md` |
+| ImagePullBackOff — ECR 이미지 못 가져옴 | EKS / ECR | `eks-imagepullbackoff.md` |
+| EBS BurstBalance 소진 — I/O 레이턴시 급등 | EC2 / EBS | `ec2-ebs-burst-exhausted.md` |
+| RDS 연결 수 초과 — Too many connections | RDS | `rds-connection-pool-exhausted.md` |
+| BGP 세션 Flapping — DX 경유 트래픽 단절 | Direct Connect | `dx-bgp-flapping.md` |
 
 ---
 

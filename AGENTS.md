@@ -1,6 +1,6 @@
 # AGENTS.md — aws-basic 에이전트 작업 지침 (Codex/Claude 공용)
 
-이 저장소는 `docs/` 중심의 개인 지식 베이스입니다. Codex/Claude 등 어떤 에이전트로 작업하더라도, 문서 추가/수정 시 본 지침과 `rules/` 규칙을 우선합니다.
+이 저장소는 `docs/` 중심의 개인 지식 베이스입니다. Codex/Claude 등 어떤 에이전트로 작업하더라도, 문서 추가/수정 시 본 지침과 `docs/rules/` 규칙을 우선합니다.
 
 ## 1) 공용 원칙 (필수)
 
@@ -11,16 +11,16 @@
 - **추측 금지**: 불확실한 표현 금지, 숫자/한도/비용은 근거(공식 문서 링크 등) 없이 단독 기재 금지
 
 세부 규칙(문서 스타일/코드 컨벤션/보안/모니터링):
-- `rules/doc-writing.md`
-- `rules/aws-conventions.md`
-- `rules/security-checklist.md`
-- `rules/monitoring.md`
+- `docs/rules/doc-writing.md`
+- `docs/rules/aws-conventions.md`
+- `docs/rules/security-checklist.md`
+- `docs/rules/monitoring.md`
 
 ## 2) 디렉터리/파일 규칙
 
 - 지식 문서: `docs/{카테고리}/{서비스}-{주제}.md`
-- 템플릿: `templates/` 하위 템플릿을 우선 사용
-- 스크립트/예제 코드: `cli/`, `sdk/`, `lambda/` 하위에 목적에 맞게 추가
+- 템플릿: `docs/templates/` 하위 템플릿을 우선 사용
+- 스크립트/예제 코드: `ops/cli/`, `ops/sdk/`, `ops/lambda/` 하위에 목적에 맞게 추가
 
 ## 3) Claude 설정과의 공존
 
@@ -30,9 +30,9 @@
 
 ## 4) 작업 체크리스트 (간단)
 
-- 새 문서면 5개 섹션(개요/설명/트러블슈팅/모니터링 및 알람/TIP) 포함 여부 확인 (`rules/doc-writing.md` 기준)
+- 새 문서면 5개 섹션(개요/설명/트러블슈팅/모니터링 및 알람/TIP) 포함 여부 확인 (`docs/rules/doc-writing.md` 기준)
 - 파일명/경로가 네이밍 규칙을 따르는지 확인 (`CLAUDE.md` 참고)
-- 보안/권한 관련이면 `rules/security-checklist.md`도 함께 점검
+- 보안/권한 관련이면 `docs/rules/security-checklist.md`도 함께 점검
 
 ## 5) Git 커밋 메시지 (AI 사용 표기)
 
