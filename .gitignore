@@ -9,3 +9,6 @@ CLAUDE.local.md
 *.tmp
 *.swp
 *~
+
+# Claude Code local workspace
+.claude/
