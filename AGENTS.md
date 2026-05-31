@@ -1,6 +1,6 @@
-# AGENTS.md — aws-basic 에이전트 작업 지침 (Codex/Claude 공용)
+# AGENTS.md — aws-basic Codex 작업 지침
 
-이 저장소는 `docs/` 중심의 개인 지식 베이스입니다. Codex/Claude 등 어떤 에이전트로 작업하더라도, 문서 추가/수정 시 본 지침과 `docs/rules/` 규칙을 우선합니다.
+이 저장소는 AWS 운영 지식 베이스입니다. Codex 작업 시 `CLAUDE.md`와 `docs/rules/`의 규칙을 동일하게 따릅니다.
 
 ## 1) 공용 원칙 (필수)
 
@@ -22,11 +22,12 @@
 - 템플릿: `docs/templates/` 하위 템플릿을 우선 사용
 - 스크립트/예제 코드: `ops/cli/`, `ops/sdk/`, `ops/lambda/` 하위에 목적에 맞게 추가
 
-## 3) Claude 설정과의 공존
+## 3) Claude와의 싱크
 
-- `CLAUDE.md`: 프로젝트 구조/가이드(팀 공용). 본 파일(`AGENTS.md`)은 Codex 관점의 “진입점” 역할을 합니다.
-- `CLAUDE.local.md`: 로컬 개인 설정(개인 환경 전용). 팀 규칙/공용 가이드는 여기에 추가하지 않습니다.
-- `.claude/`: Claude 워크플로 설정(참고용). Codex는 직접 해석하지 않을 수 있습니다.
+- `CLAUDE.md`: Claude용 프로젝트 지침입니다.
+- `AGENTS.md`: Codex용 진입점입니다.
+- `CLAUDE.local.md`: 로컬 개인 설정입니다. 팀 규칙/공용 가이드는 여기에 추가하지 않습니다.
+- 공통 규칙은 `docs/rules/`를 기준으로 유지합니다.
 
 ## 4) 작업 체크리스트 (간단)
 
