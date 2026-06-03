@@ -6,7 +6,7 @@ AWS 운영 경험을 바탕으로 EC2, EKS, 네트워크, 보안, 비용, 관측
 
 - 문서 지도: `docs/README.md`
 - 운영/실습 자산: `ops/README.md`
-- AI 작업 지침: `CLAUDE.md`, `AGENTS.md`
+- AI 작업 지침: `CLAUDE.md`, `AGENTS.md -> CLAUDE.md`
 
 ## 구조
 
@@ -15,8 +15,8 @@ AWS 운영 경험을 바탕으로 EC2, EKS, 네트워크, 보안, 비용, 관측
 | `docs/` | AWS 서비스별 지식 문서, 에이전트, 작성 규칙, 템플릿 |
 | `ops/` | AWS CLI 스크립트, boto3 SDK 예제, Lambda 함수 예제 |
 | `.claude/` | Claude Code 커맨드와 설정 |
-| `CLAUDE.md` | Claude 작업 지침 |
-| `AGENTS.md` | Codex/agent 작업 지침 |
+| `CLAUDE.md` | Claude/Codex 공통 작업 지침 원본 |
+| `AGENTS.md -> CLAUDE.md` | Codex/agent 작업 지침 링크 |
 
 ## 학습 흐름
 
