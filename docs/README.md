@@ -9,7 +9,7 @@ AWS 학습 문서는 서비스와 운영 주제별로 나눠 관리합니다.
 | `network/` | VPC, TGW, Route 53, VPC Endpoint, Flow Logs |
 | `security/` | IAM, IMDS, CloudTrail, WAF, 보안 감사 |
 | `cloudwatch/` | CloudWatch Logs, Metrics, Alarm, Dashboard, RUM |
-| `storage/` | S3, EFS, ECR 운영 패턴 |
+| `storage/` | S3, EFS, ECR 운영 패턴과 스토리지 비용 최적화 |
 | `database/` | RDS, Aurora, ElastiCache 운영 |
 | `dx/` | Direct Connect, BGP, VIF, 회선 모니터링 |
 | `cost/` | 비용 최적화, Organizations, 멀티 계정 |

@@ -88,9 +88,13 @@ resource "aws_efs_file_system" "main" {
 
   # IA 티어로 자동 이동 (30일 미접근 시)
   lifecycle_policy {
-    transition_to_ia                    = "AFTER_30_DAYS"
-    transition_to_primary_storage_class = "AFTER_1_ACCESS"  # 재접근 시 Standard로 복귀
+    transition_to_ia = "AFTER_30_DAYS"
   }
+
+  # 주의:
+  # transition_to_primary_storage_class = "AFTER_1_ACCESS" 를 켜면
+  # IA 파일을 읽는 순간 Standard로 복귀할 수 있어 비용이 크게 증가할 수 있다.
+  # 자세한 기준은 docs/storage/efs-standard-ia-best-practice.md 참고.
 
   tags = {
     Name        = "${var.cluster_name}-efs"
@@ -521,8 +525,9 @@ resource "aws_efs_file_system_policy" "cross_account" {
 **비용**
 
 - **Elastic Throughput 모드 사용**: 프로비저닝된 처리량 모드 대비 사용한 만큼만 과금
-- **IA 티어 활용**: `transition_to_ia = "AFTER_30_DAYS"` — 30일 미접근 파일을 IA(Infrequent Access) 티어로 이동, 최대 92% 비용 절감
-- **`transition_to_primary_storage_class = "AFTER_1_ACCESS"`**: 재접근 시 Standard로 자동 복귀 (지연 최소화)
+- **IA 티어 활용**: `transition_to_ia = "AFTER_30_DAYS"` — 30일 미접근 파일을 IA(Infrequent Access) 티어로 이동해 저장 비용 절감
+- **Standard 자동 복귀는 신중하게 사용**: `transition_to_primary_storage_class = "AFTER_1_ACCESS"`는 지연 시간은 줄일 수 있지만 대량 파일 읽기 후 Standard 비용이 급증할 수 있음
+- **EFS Standard/IA 정책 분리**: hot/cold 데이터가 섞이면 `efs-standard-ia-best-practice.md` 기준으로 파일시스템 또는 StorageClass 분리 검토
 - **사용하지 않는 Access Point 정리**: `aws efs describe-access-points`로 주기적 감사
 
 ---
