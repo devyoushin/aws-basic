@@ -126,6 +126,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 | `eks-network-policy.md` | NetworkPolicy Default-deny, namespace selector, DNS egress |
 | `eks-networking-vpc-cni.md` | VPC CNI ENI/IP 한도, Prefix Delegation, IP 고갈 해결 |
 | `eks-node-drain-cordon.md` | Node Drain/Cordon, PDB, preStop 훅, 안전한 노드 교체 |
+| `eks-efs-csi-storageclass.md` | EKS에서 EFS CSI Driver, StorageClass, PVC, Access Point 운영 |
 | `eks-persistent-volume.md` | EBS/EFS CSI Driver, StorageClass gp3, StatefulSet, VolumeSnapshot |
 | `eks-pod-security.md` | Pod Security Admission 3단계, Falco 런타임 탐지 |
 | `eks-resource-requests-limits.md` | QoS 클래스, OOMKilled/CPU throttling, LimitRange, ResourceQuota |
