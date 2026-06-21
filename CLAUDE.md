@@ -101,6 +101,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 | `ec2-autoscaling-stop-start.md` | ASG 내 인스턴스 Stop/Start, Standby 상태 활용 |
 | `ec2-dedicated-instance.md` | Dedicated Instance vs Dedicated Host, 비용/라이선스 |
 | `ec2-ebs-performance.md` | EBS gp2→gp3 마이그레이션, BurstBalance, fio 벤치마크 |
+| `ec2-ebs-lvm-mount.md` | EBS 연결, LVM 3분할, XFS 마운트, fstab 영구 등록 |
 | `ec2-enhanced-networking.md` | ENA SR-IOV, 기준/버스트 대역폭, iperf3 테스트 |
 | `ec2-gpu-telemetry-capturing.md` | GPU 텔레메트리 수집, NVIDIA DCGM, Xid 오류 코드 |
 | `ec2-instance-types.md` | 인스턴스 패밀리 개요, Graviton ARM64, 멀티아치 Docker 빌드 |

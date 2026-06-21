@@ -4,7 +4,7 @@ AWS 학습 문서는 서비스와 운영 주제별로 나눠 관리합니다.
 
 | 폴더 | 내용 |
 |------|------|
-| `ec2/` | EC2 인스턴스, AMI, EBS, Spot, SSM, UserData |
+| `ec2/` | EC2 인스턴스, AMI, EBS, LVM 마운트, Spot, SSM, UserData |
 | `eks/` | EKS 네트워킹, 노드그룹, IRSA, Karpenter, 업그레이드 |
 | `network/` | VPC, TGW, Route 53, VPC Endpoint, Flow Logs |
 | `security/` | IAM, IMDS, CloudTrail, WAF, 보안 감사 |
