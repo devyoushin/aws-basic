@@ -104,7 +104,134 @@ End
 
 ---
 
-### 2.3 Terraform 구성 예시 (EC2 In-Place)
+### 2.3 ELB 로드밸런서 트래픽 제어
+
+CodeDeploy의 ELB 연동은 `deployment_style.deployment_option = "WITH_TRAFFIC_CONTROL"`과 Deployment Group의 `load_balancer_info`로 설정한다. CodeDeploy는 애플리케이션 프로세스를 중지하기 전에 대상 인스턴스를 로드밸런서에서 빼고, `ValidateService`까지 성공한 뒤 다시 등록한다.
+
+```
+EC2 In-Place
+Target Group에서 인스턴스 deregister
+  → 기존 앱 중지·새 Revision 설치·기동
+  → ValidateService 성공
+  → Target Group 재등록
+  → ALB/NLB health check healthy
+  → 트래픽 재개
+
+EC2 Blue/Green
+Green ASG 생성·Revision 설치
+  → Green 인스턴스 Target Group 등록·health check
+  → 트래픽을 Green으로 전환
+  → Blue 인스턴스 Target Group 해제
+  → 대기 시간 후 Blue ASG 종료 또는 유지
+```
+
+| Compute platform / 배포 타입 | `load_balancer_info` 설정 | CodeDeploy의 처리 |
+|---|---|---|
+| EC2/온프레미스 In-Place | ALB/NLB Target Group 또는 Classic Load Balancer | 작업 중인 인스턴스를 해제하고 배포·검증 성공 뒤 재등록 |
+| EC2 Blue/Green | ALB/NLB Target Group 또는 Classic Load Balancer | Green 인스턴스를 선택된 Target Group에 등록하고 Blue 인스턴스를 해제 |
+| ECS Blue/Green | Target Group 2개, production listener, 선택적 test listener | listener의 Target Group을 교체하며 traffic shift 수행 |
+
+ALB와 NLB는 `target_group_info`에 **Target Group 이름**을 지정한다. Classic Load Balancer만 `elb_info`를 사용한다. EC2/온프레미스 Deployment Group에는 Classic Load Balancer 최대 10개와 ALB/NLB Target Group 최대 10개를 함께 연결할 수 있다.
+
+#### ALB Target Group과 CodeDeploy Deployment Group (EC2 In-Place)
+
+아래 구성은 `/health`가 200을 반환해야 트래픽에 다시 참여하는 EC2 In-Place 배포 예시다. `health_check`은 CodeDeploy의 `ValidateService`와 별개다. 둘 다 통과해야 배포 성공과 실제 요청 수신을 신뢰할 수 있다.
+
+```hcl
+# ALB가 EC2 애플리케이션에 트래픽을 보낼 Target Group
+resource "aws_lb_target_group" "myapp" {
+  name        = "prod-myapp-http"
+  port        = 8080
+  protocol    = "HTTP"
+  target_type = "instance"
+  vpc_id      = aws_vpc.main.id
+
+  # 배포 중 연결을 비울 수 있는 시간. 앱의 최대 요청 시간보다 길게 설정
+  deregistration_delay = 30
+
+  health_check {
+    enabled             = true
+    path                = "/health"
+    protocol            = "HTTP"
+    port                = "traffic-port"
+    matcher             = "200"
+    interval            = 15
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+# 기존 ALB listener는 배포 내내 같은 Target Group을 forward
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.myapp.arn
+  port              = 443
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate.myapp.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.myapp.arn
+  }
+}
+
+resource "aws_codedeploy_deployment_group" "myapp_in_place" {
+  app_name               = aws_codedeploy_app.myapp.name
+  deployment_group_name  = "myapp-prod-in-place"
+  service_role_arn       = aws_iam_role.codedeploy.arn
+  deployment_config_name = "CodeDeployDefault.OneAtATime"
+
+  autoscaling_groups = [aws_autoscaling_group.myapp.name]
+
+  deployment_style {
+    # Target Group에서 제외한 뒤 배포하고, 성공 후 다시 등록
+    deployment_option = "WITH_TRAFFIC_CONTROL"
+    deployment_type   = "IN_PLACE"
+  }
+
+  load_balancer_info {
+    target_group_info {
+      # ARN이 아닌 Target Group name을 지정
+      name = aws_lb_target_group.myapp.name
+    }
+  }
+
+  auto_rollback_configuration {
+    enabled = true
+    events  = ["DEPLOYMENT_FAILURE", "DEPLOYMENT_STOP_ON_ALARM"]
+  }
+}
+```
+
+#### Blue/Green과 ECS에서 주의할 점
+
+EC2 Blue/Green에서는 Deployment Group에 지정한 Target Group으로 Green 인스턴스가 등록된다. 따라서 기존 Target Group 하나를 사용해도 된다. 트래픽 전환 전에 Green이 `healthy` 상태가 되도록 health check 경로, 애플리케이션 포트, ALB 보안 그룹에서 EC2 보안 그룹으로의 인바운드를 맞춘다.
+
+ECS Blue/Green은 구성이 다르다. `target_group_pair_info`에 Target Group 두 개를 지정하고, production listener와 필요 시 test listener를 함께 구성한다. EC2 Blue/Green에 ECS용 Target Group pair 설정을 복사하면 안 된다.
+
+#### 배포 전·중 확인 명령
+
+```bash
+# Target Group에 등록된 인스턴스의 상태와 실패 원인을 확인
+aws elbv2 describe-target-health \
+  --target-group-arn <TARGET_GROUP_ARN> \
+  --region ap-northeast-2 \
+  --output json
+
+# Target Group의 health check 경로·포트·drain 시간을 확인
+aws elbv2 describe-target-groups \
+  --target-group-arns <TARGET_GROUP_ARN> \
+  --region ap-northeast-2 \
+  --output json
+
+# 배포의 lifecycle event와 Target Group 처리 상태를 확인
+aws deploy get-deployment \
+  --deployment-id <DEPLOYMENT_ID> \
+  --region ap-northeast-2 \
+  --output json
+```
+
+### 2.4 Terraform 구성 예시 (EC2 Blue/Green)
 
 ```hcl
 # CodeDeploy Application
@@ -222,7 +349,7 @@ aws deploy get-deployment --deployment-id d-XXXXXXXXX
 
 ---
 
-### 2.4 보안/비용 Best Practice
+### 2.5 보안/비용 Best Practice
 
 | 항목 | 권장 설정 |
 |------|----------|
@@ -337,6 +464,28 @@ sudo /opt/codedeploy-agent/bin/codedeploy-agent status
 ### CloudWatch 지표
 
 ```hcl
+# 배포 중 또는 배포 후 Target Group에 정상 타겟이 없는 상태를 감지
+resource "aws_cloudwatch_metric_alarm" "myapp_no_healthy_target" {
+  alarm_name          = "myapp-prod-no-healthy-target"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "HealthyHostCount"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = 1
+
+  dimensions = {
+    LoadBalancer = aws_lb.myapp.arn_suffix
+    TargetGroup  = aws_lb_target_group.myapp.arn_suffix
+  }
+
+  # 신규 Target Group 생성·지표 미발행도 배포 중에는 실패로 처리
+  treat_missing_data = "breaching"
+  alarm_actions      = [aws_sns_topic.alerts.arn]
+  alarm_description  = "CodeDeploy 대상 ALB Target Group의 healthy 인스턴스가 없음"
+}
+
 # 배포 실패 알람
 resource "aws_cloudwatch_metric_alarm" "deploy_failure" {
   alarm_name          = "codedeploy-deployment-failure"
@@ -382,6 +531,8 @@ resource "aws_codedeploy_deployment_group" "myapp" {
 | `DeploymentsFailed` | AWS/CodeDeploy | 실패한 배포 수 |
 | `DeploymentsSucceeded` | AWS/CodeDeploy | 성공한 배포 수 |
 | `DeploymentDuration` | AWS/CodeDeploy | 배포 소요 시간 (초) |
+| `HealthyHostCount` | AWS/ApplicationELB | 트래픽을 받을 수 있는 Target Group 정상 타겟 수 |
+| `UnHealthyHostCount` | AWS/ApplicationELB | health check에 실패한 Target Group 타겟 수 |
 
 ---
 
@@ -407,3 +558,5 @@ resource "aws_codedeploy_deployment_group" "myapp" {
   - [AWS CodeDeploy 공식 문서](https://docs.aws.amazon.com/codedeploy/latest/userguide/welcome.html)
   - [AppSpec 파일 레퍼런스 (EC2)](https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file.html)
   - [배포 구성 레퍼런스](https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-configurations.html)
+  - [EC2/온프레미스 배포용 Load Balancer 설정](https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-groups-create-load-balancer.html)
+  - [ECS Blue/Green Load Balancer, Target Group, Listener 설정](https://docs.aws.amazon.com/codedeploy/latest/userguide/deployment-groups-create-load-balancer-for-ecs.html)
