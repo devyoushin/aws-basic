@@ -114,6 +114,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 | `ec2-ssm-session-manager.md` | SSM Session Manager (SSH 대체), VPC 엔드포인트 구성 |
 | `ec2-userdata-cloud-init.md` | UserData/cloud-init 실행 단계, bash vs cloud-config 디버깅 |
 | `ec2-rhel-upgrade.md` | RHEL dnf 마이너 버전 업그레이드, RHEL 8→9 Leapp 메이저 업그레이드 |
+| `ec2-status-check-failure.md` | EC2 System/Instance/EBS 상태 체크 실패 진단, 자동 복구, 루트 볼륨 구조 |
 
 ### docs/eks/
 | 파일 | 주제 |
