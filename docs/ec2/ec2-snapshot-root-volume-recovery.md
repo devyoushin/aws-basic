@@ -24,7 +24,7 @@
 |------|:-----------------:|------|
 | 수동 교체 (Detach/Attach) | O | 모든 인스턴스 유형 지원, 정교한 제어 가능 |
 | Replace Root Volume (콘솔/CLI) | X (재시작 필요) | Nitro 기반 인스턴스만 지원, 스냅샷 또는 AMI 지정 가능 |
-| AMI로 새 인스턴스 생성 | - | 기존 인스턴스 IP·ENI 유지 불가 (ENI 재부착으로 우회 가능) |
+| AMI로 새 인스턴스 생성 | - | 새 instance ID·primary ENI로 기동. EIP, ALB/NLB 또는 Route 53로 트래픽 전환 필요 |
 
 ---
 
