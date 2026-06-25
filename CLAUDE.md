@@ -99,6 +99,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 | `ec2-al2023-migration.md` | AL2 → AL2023 마이그레이션 IP 유지 (ENI Swap, EIP, NLB Target 교체) |
 | `ec2-ami-management.md` | Golden AMI 파이프라인, Packer, EC2 Image Builder |
 | `ec2-ami-instance-recovery.md` | AMI 백업 기반 신규 EC2 복구, 데이터·네트워크·트래픽 전환 |
+| `ec2-aws-backup-restore.md` | AWS Backup 기반 EC2 백업·복구, Recovery Point, 복구 작업 검증 |
 | `ec2-autoscaling-stop-start.md` | ASG 내 인스턴스 Stop/Start, Standby 상태 활용 |
 | `ec2-dedicated-instance.md` | Dedicated Instance vs Dedicated Host, 비용/라이선스 |
 | `ec2-ebs-performance.md` | EBS gp2→gp3 마이그레이션, BurstBalance, fio 벤치마크 |
