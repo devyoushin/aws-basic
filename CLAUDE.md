@@ -164,6 +164,7 @@ docs/{카테고리}/{서비스}-{주제}.md
 |------|------|
 | `aws-transit-gateway.md` | Hub-and-Spoke 멀티 VPC, 환경 격리 라우팅, RAM 공유 |
 | `nlb-ec2-port-forwarding.md` | NLB 포트 포워딩, Terraform 코드, 헬스체크 트러블슈팅 |
+| `nlb-security-group-best-practice.md` | NLB Security Group 동작 원리, inbound rule, target SG 참조 Best Practice |
 | `route53-failover-routing.md` | Route 53 Failover 라우팅, 헬스체크 유형, Active-Passive |
 | `vpc-endpoint.md` | Gateway/Interface Endpoint, ECR/SSM 비용 절감, Private DNS |
 | `vpc-flow-logs-analysis.md` | VPC Flow Logs 분석, Athena DDL, 보안 감사 쿼리 패턴 |
